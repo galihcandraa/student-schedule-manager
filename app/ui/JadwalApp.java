@@ -6,6 +6,7 @@ import java.util.Scanner;
 import app.model.Jadwal;
 import app.model.SearchType;
 import app.service.JadwalService;
+import app.util.InputValidation;
 
 public class JadwalApp {
     static JadwalService service = new JadwalService();
@@ -22,35 +23,85 @@ public class JadwalApp {
     }
 
     public static void showJadwal(List<Jadwal> listData) {
-        System.out.println("\n=== LIST JADWAL ===");
-        System.out.println("------------------------------------------------------------------------------------------------");
-        System.out.printf("| %-3s | %-30s | %-10s | %-10s | %-12s | %-12s |%n", "No", "Nama Mata Kuliah", "Ruang", "Hari", "Jam Mulai", "Jam Selesai");
-        for (int i = 0; i < listData.size(); i++) {
+        if (listData.isEmpty()) {
+            System.out.println("Tidak ada data!\n");
+        } else {
+            System.out.println("\n=== LIST JADWAL ===");
             System.out.println("------------------------------------------------------------------------------------------------");
-            System.out.printf("| %-3d | %-30s | %-10s | %-10s | %-12s | %-12s |%n",
-            i + 1,
-            listData.get(i).getNamaMatkul(),
-            listData.get(i).getNamaRuang(),
-            listData.get(i).getHari(),
-            listData.get(i).getJamStart(),
-            listData.get(i).getJamEnd());
+            System.out.printf("| %-3s | %-30s | %-10s | %-10s | %-12s | %-12s |%n", "No", "Nama Mata Kuliah", "Ruang", "Hari", "Jam Mulai", "Jam Selesai");
+            for (int i = 0; i < listData.size(); i++) {
+                System.out.println("------------------------------------------------------------------------------------------------");
+                System.out.printf("| %-3d | %-30s | %-10s | %-10s | %-12s | %-12s |%n",
+                        i + 1,
+                        listData.get(i).getNamaMatkul(),
+                        listData.get(i).getNamaRuang(),
+                        listData.get(i).getHari(),
+                        listData.get(i).getJamStart(),
+                        listData.get(i).getJamEnd());
+            }
+            System.out.println("------------------------------------------------------------------------------------------------\n");
         }
-        System.out.println("------------------------------------------------------------------------------------------------");
-        System.out.println();
     }
 
     public static void inputData(Scanner sc) {
+        String namaMatkul, namaRuang, hari, jamStart, jamEnd;
+        String error;
+
         System.out.println("\n=== INPUT DATA ===");
-        System.out.print("- Masukkan nama mata kuliah: ");
-        String namaMatkul = sc.nextLine();
-        System.out.print("- Masukkan nama ruangan: ");
-        String namaRuang = sc.nextLine();
-        System.out.print("- Masukkan hari: ");
-        String hari = sc.nextLine();
-        System.out.print("- Masukkan jam mulai: ");
-        String jamStart = sc.nextLine();
-        System.out.print("- Masukkan jam selesai: ");
-        String jamEnd = sc.nextLine();
+        while (true) {
+            System.out.print("- Masukkan nama mata kuliah: ");
+            namaMatkul = sc.nextLine();
+            error = InputValidation.validateText("nama matkul", namaMatkul, 3);
+            if (error != null) {
+                System.out.println(error);
+                continue;
+            }
+            break;
+        }
+
+        while (true) {
+            System.out.print("- Masukkan nama ruangan: ");
+            namaRuang = sc.nextLine();
+            error = InputValidation.validateText("nama ruangan", namaRuang, 3);
+            if (error != null) {
+                System.out.println(error);
+                continue;
+            }
+            break;
+        }
+
+        while (true) {
+            System.out.print("- Masukkan hari: ");
+            hari = sc.nextLine();
+            error = InputValidation.validateDay(hari);
+            if (error != null) {
+                System.out.println(error);
+                continue;
+            }
+            break;
+        }
+
+        while (true) {
+            System.out.print("- Masukkan jam mulai: ");
+            jamStart = sc.nextLine();
+            error = InputValidation.validateTime("jam mulai", jamStart);
+            if (error != null) {
+                System.out.println(error);
+                continue;
+            }
+            break;
+        }
+
+        while (true) {
+            System.out.print("- Masukkan jam selesai: ");
+            jamEnd = sc.nextLine();
+            error = InputValidation.validateTime("jam selesai", jamEnd);
+            if (error != null) {
+                System.out.println(error);
+                continue;
+            }
+            break;
+        }
         service.addData(namaMatkul, namaRuang, hari, jamStart, jamEnd);
         System.out.println("Data berhasil ditambahkan!\n");
     }
@@ -87,11 +138,7 @@ public class JadwalApp {
                     break;
 
                 case 2:
-                    if (service.showJadwal().isEmpty()) {
-                        System.out.println("Data tidak ada!\n");
-                    } else {
-                        showJadwal(service.showJadwal());
-                    }
+                    showJadwal(service.showJadwal());
                     break;
 
                 case 3:

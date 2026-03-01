@@ -25,26 +25,26 @@ public class JadwalService {
         for (Jadwal jadwal : listJadwal) {
             switch (type) {
                 case MATKUL:
-                    if (jadwal.getNamaMatkul().equals(value))
+                    if (jadwal.getNamaMatkul().equalsIgnoreCase(value))
                         results.add(jadwal);
                     break;
 
                 case RUANGAN:
-                    if (jadwal.getNamaRuang().equals(value))
+                    if (jadwal.getNamaRuang().equalsIgnoreCase(value))
                         results.add(jadwal);
                     break;
 
                 case HARI:
-                    if (jadwal.getHari().equals(value))
+                    if (jadwal.getHari().equalsIgnoreCase(value))
                         results.add(jadwal);
                     break;
 
                 case JAM_START:
-                    if (jadwal.getJamStart().equals(value))
+                    if (jadwal.getJamStart().equalsIgnoreCase(value))
                         results.add(jadwal);
                     break;
                 case JAM_END:
-                    if (jadwal.getJamEnd().equals(value))
+                    if (jadwal.getJamEnd().equalsIgnoreCase(value))
                         results.add(jadwal);
                     break;
             }
@@ -58,7 +58,7 @@ public class JadwalService {
 
     public boolean deleteDataByNomor(int number) {
         int index = number - 1;
-        if (index < 0 || index > listJadwal.size()) {
+        if (index < 0 || index >= listJadwal.size()) {
             return false;
         }
         listJadwal.remove(index);
