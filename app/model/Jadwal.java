@@ -1,20 +1,22 @@
 package app.model;
 
+import java.time.LocalTime;
+
 public class Jadwal {
     
     private String namaMatkul;
     private String namaRuang;
     private String hari;
-    private String jamStart;
-    private String jamEnd;
+    private LocalTime jamMulai;
+    private LocalTime jamSelesai;
     
     
-    public Jadwal(String namaMatkul, String namaRuang, String hari, String jamStart, String jamEnd) {
+    public Jadwal(String namaMatkul, String namaRuang, String hari, LocalTime jamMulai, LocalTime jamSelesai) {
         this.namaMatkul = namaMatkul;
         this.namaRuang = namaRuang;
         this.hari = hari;
-        this.jamStart = jamStart;
-        this.jamEnd = jamEnd;
+        this.jamMulai = jamMulai;
+        this.jamSelesai = jamSelesai;
     }
 
     public String getNamaMatkul() {
@@ -29,17 +31,16 @@ public class Jadwal {
         return hari;
     }
     
-    public String getJamStart() {
-        return jamStart;
+    public LocalTime getJamMulai() {
+        return jamMulai;
     }
 
-    public String getJamEnd() {
-        return jamEnd;
+    public LocalTime getJamSelesai() {
+        return jamSelesai;
     }
 
     @Override
     public String toString() {
-        return "Jadwal [namaMatkul=" + namaMatkul + ", namaRuang=" + namaRuang + ", hari=" + hari + ", jam mulai=" + jamStart + ", jam selesai=" + jamEnd
-                + "]";
+        return "Jadwal [namaMatkul=" + namaMatkul + ", namaRuang=" + namaRuang + ", hari=" + hari + ", jam mulai=" + jamMulai + ", jam selesai=" + jamSelesai + "]";
     }
 }

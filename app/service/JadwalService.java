@@ -1,17 +1,18 @@
 package app.service;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import app.model.Jadwal;
 import app.model.SearchType;
 
-public class JadwalService {
+public class JadwalService { 
 
     private List<Jadwal> listJadwal = new ArrayList<>();
 
-    public void addData(String namaMatkul, String namaRuang, String hari, String jamStart, String jamEnd) {
-        Jadwal dataBaru = new Jadwal(namaMatkul, namaRuang, hari, jamStart, jamEnd);
+    public void addData(String namaMatkul, String namaRuang, String hari, LocalTime jamMulai, LocalTime jamSelesai) {
+        Jadwal dataBaru = new Jadwal(namaMatkul, namaRuang, hari, jamMulai, jamSelesai);
         listJadwal.add(dataBaru);
     }
 
@@ -40,11 +41,12 @@ public class JadwalService {
                     break;
 
                 case JAM_START:
-                    if (jadwal.getJamStart().equalsIgnoreCase(value))
+                    if (jadwal.getJamMulai().equals(LocalTime.parse(value)))
                         results.add(jadwal);
                     break;
+                    
                 case JAM_END:
-                    if (jadwal.getJamEnd().equalsIgnoreCase(value))
+                    if (jadwal.getJamSelesai().equals(LocalTime.parse(value)))
                         results.add(jadwal);
                     break;
             }
