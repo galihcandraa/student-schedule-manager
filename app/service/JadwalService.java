@@ -7,12 +7,19 @@ import java.util.List;
 import app.model.Jadwal;
 import app.model.SearchType;
 
-public class JadwalService { 
+public class JadwalService {
 
     private List<Jadwal> listJadwal = new ArrayList<>();
 
-    public void addData(String namaMatkul, String namaRuang, String hari, LocalTime jamMulai, LocalTime jamSelesai) {
-        Jadwal dataBaru = new Jadwal(namaMatkul, namaRuang, hari, jamMulai, jamSelesai);
+    int nextId = 1;
+    private String generateId() {
+        String id = "JS226" + nextId++;
+        return id;
+    }
+
+    public void addData(String namaMatkul, String namaRuang, String hari, LocalTime jamMulai,
+            LocalTime jamSelesai) {
+        Jadwal dataBaru = new Jadwal(generateId(), namaMatkul, namaRuang, hari, jamMulai, jamSelesai);
         listJadwal.add(dataBaru);
     }
 
@@ -40,12 +47,12 @@ public class JadwalService {
                         results.add(jadwal);
                     break;
 
-                case JAM_START:
+                case JAM_MULAI:
                     if (jadwal.getJamMulai().equals(LocalTime.parse(value)))
                         results.add(jadwal);
                     break;
                     
-                case JAM_END:
+                case JAM_SELESAI:
                     if (jadwal.getJamSelesai().equals(LocalTime.parse(value)))
                         results.add(jadwal);
                     break;
@@ -54,17 +61,20 @@ public class JadwalService {
         return results;
     }
 
-    public boolean deleteDataByNameMatkul(String name) {
-        return listJadwal.removeIf(j -> j.getNamaMatkul().equalsIgnoreCase(name));
-    }
+    public boolean deleteDataById(String id) {
+        boolean found = false;
 
-    public boolean deleteDataByNomor(int number) {
-        int index = number - 1;
-        if (index < 0 || index >= listJadwal.size()) {
-            return false;
+        for (Jadwal j : listJadwal) {
+            if (j.getId().equals(id)) {
+                found = true;
+            }
         }
-        listJadwal.remove(index);
-        return true;
+
+        if (!found) {
+            return false;
+        } else {
+            return listJadwal.removeIf(j -> j.getId().equals(id));
+        }
     }
 
     public void reset() {

@@ -4,6 +4,7 @@ import java.time.LocalTime;
 
 public class Jadwal {
     
+    private String id;
     private String namaMatkul;
     private String namaRuang;
     private String hari;
@@ -11,12 +12,17 @@ public class Jadwal {
     private LocalTime jamSelesai;
     
     
-    public Jadwal(String namaMatkul, String namaRuang, String hari, LocalTime jamMulai, LocalTime jamSelesai) {
+    public Jadwal(String id, String namaMatkul, String namaRuang, String hari, LocalTime jamMulai, LocalTime jamSelesai) {
+        this.id = id;
         this.namaMatkul = namaMatkul;
         this.namaRuang = namaRuang;
         this.hari = hari;
         this.jamMulai = jamMulai;
         this.jamSelesai = jamSelesai;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getNamaMatkul() {

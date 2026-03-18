@@ -41,17 +41,17 @@ public class InputValidation {
         }
     }
 
-    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH.mm");
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     public static String validateTimeFormat(String timeName, String timeField) {
-        String error = InputValidation.validateRequiredText(timeName, timeField, 3);
+        String error = InputValidation.validateRequiredText(timeName, timeField, 4);
         if (error != null)
             return error;
 
         try {
             LocalTime.parse(timeField, TIME_FORMATTER);
         } catch (DateTimeParseException e) {
-            return "[ERROR] Format jam harus HH.mm, cth: 07.00, ulangi!";
+            return "[ERROR] Format jam harus HH.mm, cth: 07:00, ulangi!";
         }
         return null;
     }

@@ -14,8 +14,8 @@ public class JadwalApp {
 
     public static void showMenu() {
         System.out.println("===== MANAJEMEN JADWAL MHS =====");
-        System.out.println("1. Input data jadwal kuliah");
-        System.out.println("2. Tampilkan jadwal kuliah");
+        System.out.println("1. Input data jadwal");
+        System.out.println("2. Tampilkan jadwal");
         System.out.println("3. Cari jadwal");
         System.out.println("4. Hapus jadwal");
         System.out.println("5. Keluar");
@@ -29,14 +29,14 @@ public class JadwalApp {
         } else {
             System.out.println("\n=== LIST JADWAL ===");
             System.out.println(
-                    "------------------------------------------------------------------------------------------------");
-            System.out.printf("| %-3s | %-30s | %-10s | %-10s | %-12s | %-12s |%n", "No", "Nama Mata Kuliah", "Ruang",
+                    "---------------------------------------------------------------------------------------------------");
+            System.out.printf("| %-8s | %-30s | %-10s | %-10s | %-10s | %-12s |%n", "ID", "Nama Mata Kuliah", "Ruang",
                     "Hari", "Jam Mulai", "Jam Selesai");
             for (int i = 0; i < listData.size(); i++) {
                 System.out.println(
-                        "------------------------------------------------------------------------------------------------");
-                System.out.printf("| %-3d | %-30s | %-10s | %-10s | %-12s | %-12s |%n",
-                        i + 1,
+                        "---------------------------------------------------------------------------------------------------");
+                System.out.printf("| %-8s | %-30s | %-10s | %-10s | %-10s | %-12s |%n",
+                        listData.get(i).getId(),
                         listData.get(i).getNamaMatkul(),
                         listData.get(i).getNamaRuang(),
                         listData.get(i).getHari(),
@@ -44,7 +44,7 @@ public class JadwalApp {
                         listData.get(i).getJamSelesai());
             }
             System.out.println(
-                    "------------------------------------------------------------------------------------------------\n");
+                    "---------------------------------------------------------------------------------------------------\n");
         }
     }
 
@@ -98,7 +98,7 @@ public class JadwalApp {
                 }
                 break;
             }
-            
+
             while (true) {
                 System.out.print("- Masukkan jam selesai: ");
                 jamSelesai = sc.nextLine();
@@ -124,9 +124,10 @@ public class JadwalApp {
                 System.out.println(error);
                 continue;
             }
-            
+
             break;
         }
+
         service.addData(namaMatkul, namaRuang, hari, parsedTimeStart, parsedTimeEnd);
         System.out.println("Data berhasil ditambahkan!\n");
     }
@@ -143,10 +144,9 @@ public class JadwalApp {
 
     public static void showMenuRemove() {
         System.out.println("\n=== REMOVE JADWAL ===");
-        System.out.println("1. Remove from name");
-        System.out.println("2. Remove from nomor");
-        System.out.println("3. Delete all");
-        System.out.print("Masukkan pilihan (1-3): ");
+        System.out.println("1. Remove from ID");
+        System.out.println("2. Delete all");
+        System.out.print("Masukkan pilihan (1-2): ");
     }
 
     public static void main(String[] args) {
@@ -188,56 +188,42 @@ public class JadwalApp {
 
                 case 4:
                     showMenuRemove();
-                    int choiceRemove = sc.nextInt();
+                    int choiceDelete = sc.nextInt();
                     sc.nextLine();
-
-                    switch (choiceRemove) {
+                    
+                    switch (choiceDelete) {
                         case 1:
-                            System.out.print("Masukkan nama matkul: ");
-                            String removeFromName = sc.nextLine();
+                            System.out.print("Masukkan ID: ");
+                            String deleteId = sc.nextLine();
 
-                            List<Jadwal> isSearchName = service.searchByCondition(SearchType.MATKUL, removeFromName);
-                            if (isSearchName.isEmpty()) {
-                                System.out.println("Data tidak ada!\n");
+                            if (!service.deleteDataById(deleteId)) {
+                                System.out.println("Data berdasarkan ID tidak ada!\n");
                             } else {
-                                service.deleteDataByNameMatkul(removeFromName);
-                                System.out.println("Data berhasil dihapus!\n");
+                                System.out.println("Data berhasil dihapus.\n");
                             }
                             break;
 
                         case 2:
-                            System.out.print("Masukkan nomor: ");
-                            int removeFromNomor = sc.nextInt();
-                            sc.nextLine();
+                            System.out.print("Apakah anda yakin? (y/n): ");
+                            String DelAll = sc.nextLine();
 
-                            if (removeFromNomor > 0 && removeFromNomor <= service.showJadwal().size()) {
-                                boolean deleted = service.deleteDataByNomor(removeFromNomor);
-                                if (deleted) {
-                                    System.out.println("Data berhasil dihapus!\n");
-                                } else {
-                                    System.out.println("Data gagal dihapus!\n");
-                                }
-                            } else {
-                                System.out.println("Nomor tidak ada!\n");
+                            switch (DelAll) {
+                                case "y":
+                                    service.reset();
+                                    System.out.println("Semua data berhasil dihapus!\n");
+                                    break;
+
+                                case "n":
+                                    System.out.println("Aksi dibatalkan\n");
+                                    break;
+
+                                default:
+                                    System.out.println("Pilihan tidak valid!\n");
+                                    break;
                             }
                             break;
-
-                        case 3:
-                            System.out.print("Apakah anda yakin ingin menghapus semua data? (y/n): ");
-                            String askRemove = sc.nextLine();
-
-                            if (askRemove.equalsIgnoreCase("y")) {
-                                service.reset();
-                                System.out.println("Data berhasil dihapus!\n");
-                            } else if (askRemove.equalsIgnoreCase("n")) {
-                                System.out.println("Semua data tidak jadi dihapus!\n");
-                            } else {
-                                System.out.println("Pilihan tidak valid!\n");
-                            }
-                            break;
-
                         default:
-                            System.out.println("Pilihan tidak valid!");
+                            System.out.println("Pilihan tidak valid!\n");
                             break;
                     }
                     break;
