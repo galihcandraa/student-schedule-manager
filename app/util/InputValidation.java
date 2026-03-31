@@ -5,9 +5,10 @@ import java.time.format.*;
 import java.util.List;
 
 import app.model.Jadwal;
+import app.service.JadwalService;
 
 public class InputValidation {
-    public static String validateRequiredText(String fieldName, String field, int minChar) {
+    public String validateRequiredText(String fieldName, String field, int minChar) {
         if (field == null || field.isBlank()) {
             return fieldName + " tidak boleh kosong, ulangi!";
         }
@@ -17,7 +18,7 @@ public class InputValidation {
         return null;
     }
 
-    public static String validateDay(String field) {
+    public String validateDay(String field) {
         field = field.toLowerCase();
         String error = validateRequiredText("hari", field, 3);
         if (error != null)
@@ -33,18 +34,18 @@ public class InputValidation {
         return "Bukan hari kerja, ulangi!";
     }
 
-    public static LocalTime parseTime(String field) {
+    public LocalTime parseTime(String field) {
         try {
             return LocalTime.parse(field, TIME_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Format jam harus HH.mm");
+            throw new IllegalArgumentException("Format jam harus HH:mm");
         }
     }
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
-    public static String validateTimeFormat(String timeName, String timeField) {
-        String error = InputValidation.validateRequiredText(timeName, timeField, 4);
+    public String validateTimeFormat(String timeName, String timeField) {
+        String error = validateRequiredText(timeName, timeField, 4);
         if (error != null)
             return error;
 
@@ -56,20 +57,34 @@ public class InputValidation {
         return null;
     }
 
-    public static String validateTimeLogic(LocalTime targetStart, LocalTime targetEnd) {
+    public String validateTimeLogic(LocalTime targetStart, LocalTime targetEnd) {
         if (!targetStart.isBefore(targetEnd)) {
             return "[ERROR] Jam mulai wajib sebelum jam selesai, ulangi!";
         }
         return null;
     }
 
-    public static String validateTimeConflict(List<Jadwal> data, String targetDay, LocalTime targetStart, LocalTime targetEnd) {
+    public String validateTimeConflict(List<Jadwal> data, String targetDay, LocalTime targetStart,
+            LocalTime targetEnd, String ignoreId) {
         for (Jadwal jadwal : data) {
-            if (jadwal.getHari().equalsIgnoreCase(targetDay)) {
-                if (targetStart.isBefore(jadwal.getJamSelesai()) && targetEnd.isAfter(jadwal.getJamMulai())) {
-                    return "[ERROR] Jadwal bentrok dengan " + jadwal.getNamaMatkul() + " (" + jadwal.getJamMulai() + " - " + jadwal.getJamSelesai() + ") " + ", ulangi!";
-                }
+            boolean sameDay = jadwal.getHari().equalsIgnoreCase(targetDay);
+            boolean shouldIgnore = ignoreId != null && jadwal.getId().equalsIgnoreCase(ignoreId);
+            boolean isConflict = targetStart.isBefore(jadwal.getJamSelesai())
+                    && targetEnd.isAfter(jadwal.getJamMulai());
+
+            if (sameDay && !shouldIgnore && isConflict) {
+                return "[ERROR] Jadwal bentrok dengan " + jadwal.getNamaMatkul() + " (" + jadwal.getJamMulai()
+                        + " - " + jadwal.getJamSelesai() + ") " + ", ulangi!";
             }
+        }
+        return null;
+    }
+
+    public String validateIdEdit(String id, JadwalService service) {
+        Jadwal j = service.searchById(id);
+
+        if (j == null) {
+            return "ID tidak ada!\n";
         }
         return null;
     }

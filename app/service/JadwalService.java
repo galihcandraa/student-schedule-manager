@@ -6,6 +6,7 @@ import java.util.List;
 
 import app.model.Jadwal;
 import app.model.SearchType;
+import app.util.InputValidation;
 
 public class JadwalService {
 
@@ -25,6 +26,20 @@ public class JadwalService {
 
     public List<Jadwal> showJadwal() {
         return new ArrayList<>(listJadwal);
+    }
+
+    public boolean editData(String id, String matkul, String ruang, String hari, LocalTime jamMulai, LocalTime jamSelesai) {
+        for (Jadwal jadwal : listJadwal) {
+            if (jadwal.getId().equals(id)) {
+                jadwal.setNamaMatkul(matkul);
+                jadwal.setNamaRuang(ruang);
+                jadwal.setHari(hari);
+                jadwal.setJamMulai(jamMulai);
+                jadwal.setJamSelesai(jamSelesai);
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<Jadwal> searchByCondition(SearchType type, String value) {
@@ -48,12 +63,12 @@ public class JadwalService {
                     break;
 
                 case JAM_MULAI:
-                    if (jadwal.getJamMulai().equals(LocalTime.parse(value)))
+                    if (jadwal.getJamMulai().equals(LocalTime.parse(value, InputValidation.TIME_FORMATTER)))
                         results.add(jadwal);
                     break;
                     
                 case JAM_SELESAI:
-                    if (jadwal.getJamSelesai().equals(LocalTime.parse(value)))
+                    if (jadwal.getJamSelesai().equals(LocalTime.parse(value, InputValidation.TIME_FORMATTER)))
                         results.add(jadwal);
                     break;
             }
@@ -61,23 +76,21 @@ public class JadwalService {
         return results;
     }
 
-    public boolean deleteDataById(String id) {
-        boolean found = false;
-
+    public Jadwal searchById (String id) {
         for (Jadwal j : listJadwal) {
             if (j.getId().equals(id)) {
-                found = true;
+                return j;
             }
         }
+        return null;
+    }
 
-        if (!found) {
-            return false;
-        } else {
-            return listJadwal.removeIf(j -> j.getId().equals(id));
-        }
+    public boolean deleteDataById(String id) {
+        return listJadwal.removeIf(j -> j.getId().equals(id));
     }
 
     public void reset() {
         listJadwal.clear();
+        nextId = 1;
     }
 }

@@ -16,14 +16,15 @@ public class JadwalApp {
         System.out.println("===== MANAJEMEN JADWAL MHS =====");
         System.out.println("1. Input data jadwal");
         System.out.println("2. Tampilkan jadwal");
-        System.out.println("3. Cari jadwal");
-        System.out.println("4. Hapus jadwal");
-        System.out.println("5. Keluar");
+        System.out.println("3. Edit jadwal");
+        System.out.println("4. Cari jadwal");
+        System.out.println("5. Hapus jadwal");
+        System.out.println("6. Keluar");
         System.out.println("===============================");
         System.out.print("Masukkan pilihan (1 - 5): ");
     }
 
-    public static void showJadwal(List<Jadwal> listData) {
+    public static void showAllJadwal(List<Jadwal> listData) {
         if (listData.isEmpty()) {
             System.out.println("Tidak ada data!\n");
         } else {
@@ -48,88 +49,132 @@ public class JadwalApp {
         }
     }
 
-    public static void inputData(Scanner sc) {
+    public static void showDetailJadwal(Jadwal data) {
+        System.out.println("ID           : " + data.getId());
+        System.out.println("Nama Matkul  : " + data.getNamaMatkul());
+        System.out.println("Ruang        : " + data.getNamaRuang());
+        System.out.println("Hari         : " + data.getHari());
+        System.out.println("Jam Mulai    : " + data.getJamMulai());
+        System.out.println("Jam Selesai  : " + data.getJamSelesai());
+    }
+
+    public static void inputOrEditData(Scanner sc, boolean isEdit) {
         String namaMatkul, namaRuang, hari, jamMulai, jamSelesai;
         LocalTime parsedTimeStart, parsedTimeEnd;
+        InputValidation validation = new InputValidation();
+        
         String error;
+        String idEdit = null;
 
+        while (true) {
+            if (isEdit) {
+                System.out.print("Masukkan ID target: ");
+                idEdit = sc.nextLine();
+
+                error = validation.validateIdEdit(idEdit, service);
+                if (error != null) {
+                    System.out.println(error);
+                    break;
+                }
+                
+                if (service.searchById(idEdit) != null) {
+                    showDetailJadwal(service.searchById(idEdit));
+                }
+            }
+
+            while (true) {
+                System.out.print("- Masukkan nama mata kuliah: ");
+                namaMatkul = sc.nextLine();
+                error = validation.validateRequiredText("nama matkul", namaMatkul, 3);
+                if (error != null) {
+                    System.out.println(error);
+                    continue;
+                }
+                break;
+            }
+
+            while (true) {
+                System.out.print("- Masukkan nama ruangan: ");
+                namaRuang = sc.nextLine();
+                error = validation.validateRequiredText("nama ruangan", namaRuang, 3);
+                if (error != null) {
+                    System.out.println(error);
+                    continue;
+                }
+                break;
+            }
+
+            while (true) {
+                System.out.print("- Masukkan hari: ");
+                hari = sc.nextLine();
+                error = validation.validateDay(hari);
+                if (error != null) {
+                    System.out.println(error);
+                    continue;
+                }
+                break;
+            }
+
+            while (true) {
+                while (true) {
+                    System.out.print("- Masukkan jam mulai: ");
+                    jamMulai = sc.nextLine();
+                    error = validation.validateTimeFormat("jam mulai", jamMulai);
+                    if (error != null) {
+                        System.out.println(error);
+                        continue;
+                    }
+                    break;
+                }
+
+                while (true) {
+                    System.out.print("- Masukkan jam selesai: ");
+                    jamSelesai = sc.nextLine();
+                    error = validation.validateTimeFormat("jam selesai", jamSelesai);
+                    if (error != null) {
+                        System.out.println(error);
+                        continue;
+                    }
+                    break;
+                }
+
+                parsedTimeStart = validation.parseTime(jamMulai);
+                parsedTimeEnd = validation.parseTime(jamSelesai);
+
+                error = validation.validateTimeLogic(parsedTimeStart, parsedTimeEnd);
+                if (error != null) {
+                    System.out.println(error);
+                    continue;
+                }
+                
+                String ignoreId = isEdit ? idEdit : null;
+                error = validation.validateTimeConflict(service.showJadwal(), hari, parsedTimeStart, parsedTimeEnd, ignoreId);
+                if (error != null) {
+                    System.out.println(error);
+                    continue;
+                }
+                break;
+            }
+
+            if (!isEdit) {
+                service.addData(namaMatkul, namaRuang, hari, parsedTimeStart, parsedTimeEnd);
+                System.out.println("Data berhasil ditambahkan!\n");
+            } else {
+                service.editData(idEdit, namaMatkul, namaRuang, hari, parsedTimeStart, parsedTimeEnd);
+                System.out.println("Data berhasil diedit!\n");
+            }
+            break;
+        }
+    }
+
+    public static void inputData(Scanner sc) {
         System.out.println("\n=== INPUT DATA ===");
-        while (true) {
-            System.out.print("- Masukkan nama mata kuliah: ");
-            namaMatkul = sc.nextLine();
-            error = InputValidation.validateRequiredText("nama matkul", namaMatkul, 3);
-            if (error != null) {
-                System.out.println(error);
-                continue;
-            }
-            break;
-        }
+        inputOrEditData(sc, false);
+    }
 
-        while (true) {
-            System.out.print("- Masukkan nama ruangan: ");
-            namaRuang = sc.nextLine();
-            error = InputValidation.validateRequiredText("nama ruangan", namaRuang, 3);
-            if (error != null) {
-                System.out.println(error);
-                continue;
-            }
-            break;
-        }
-
-        while (true) {
-            System.out.print("- Masukkan hari: ");
-            hari = sc.nextLine();
-            error = InputValidation.validateDay(hari);
-            if (error != null) {
-                System.out.println(error);
-                continue;
-            }
-            break;
-        }
-
-        while (true) {
-            while (true) {
-                System.out.print("- Masukkan jam mulai: ");
-                jamMulai = sc.nextLine();
-                error = InputValidation.validateTimeFormat("jam mulai", jamMulai);
-                if (error != null) {
-                    System.out.println(error);
-                    continue;
-                }
-                break;
-            }
-
-            while (true) {
-                System.out.print("- Masukkan jam selesai: ");
-                jamSelesai = sc.nextLine();
-                error = InputValidation.validateTimeFormat("jam selesai", jamSelesai);
-                if (error != null) {
-                    System.out.println(error);
-                    continue;
-                }
-                break;
-            }
-
-            parsedTimeStart = InputValidation.parseTime(jamMulai);
-            parsedTimeEnd = InputValidation.parseTime(jamSelesai);
-
-            error = InputValidation.validateTimeLogic(parsedTimeStart, parsedTimeEnd);
-            if (error != null) {
-                System.out.println(error);
-                continue;
-            }
-
-            error = InputValidation.validateTimeConflict(service.showJadwal(), hari, parsedTimeStart, parsedTimeEnd);
-            if (error != null) {
-                System.out.println(error);
-                continue;
-            }
-
-            break;
-        }
-
-        service.addData(namaMatkul, namaRuang, hari, parsedTimeStart, parsedTimeEnd);
-        System.out.println("Data berhasil ditambahkan!\n");
+    public static void editData(Scanner sc) {
+        System.out.println("\n=== EDIT DATA ===");
+        inputOrEditData(sc, true);
     }
 
     public static void showMenuSearch() {
@@ -163,10 +208,14 @@ public class JadwalApp {
                     break;
 
                 case 2:
-                    showJadwal(service.showJadwal());
+                    showAllJadwal(service.showJadwal());
                     break;
 
                 case 3:
+                    editData(sc);
+                    break;
+
+                case 4:
                     showMenuSearch();
                     int choiceSearch = sc.nextInt();
                     sc.nextLine();
@@ -182,15 +231,15 @@ public class JadwalApp {
                     if (searchResults.isEmpty()) {
                         System.out.println("Data tidak ditemukan!\n");
                     } else {
-                        showJadwal(searchResults);
+                        showAllJadwal(searchResults);
                     }
                     break;
 
-                case 4:
+                case 5:
                     showMenuRemove();
                     int choiceDelete = sc.nextInt();
                     sc.nextLine();
-                    
+
                     switch (choiceDelete) {
                         case 1:
                             System.out.print("Masukkan ID: ");
@@ -228,14 +277,14 @@ public class JadwalApp {
                     }
                     break;
 
-                case 5:
+                case 6:
                     System.out.println("Keluar dari program.");
                     break;
                 default:
                     break;
             }
 
-            if (choice == 5) {
+            if (choice == 6) {
                 break;
             }
         } while (true);

@@ -47,6 +47,26 @@ public class Jadwal {
 
     @Override
     public String toString() {
-        return "Jadwal [namaMatkul=" + namaMatkul + ", namaRuang=" + namaRuang + ", hari=" + hari + ", jam mulai=" + jamMulai + ", jam selesai=" + jamSelesai + "]";
+        return "Jadwal [ID=" + id + ", namaMatkul=" + namaMatkul + ", namaRuang=" + namaRuang + ", hari=" + hari + ", jam mulai=" + jamMulai + ", jam selesai=" + jamSelesai + "]";
+    }
+
+    public void setNamaMatkul(String namaMatkul) {
+        this.namaMatkul = namaMatkul;
+    }
+
+    public void setNamaRuang(String namaRuang) {
+        this.namaRuang = namaRuang;
+    }
+
+    public void setHari(String hari) {
+        this.hari = hari;
+    }
+
+    public void setJamMulai(LocalTime jamMulai) {
+        this.jamMulai = jamMulai;
+    }
+
+    public void setJamSelesai(LocalTime jamSelesai) {
+        this.jamSelesai = jamSelesai;
     }
 }
