@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.time.LocalTime;
 
-import app.model.Jadwal;
-import app.model.SearchType;
+import app.model.*;
 import app.service.JadwalService;
 import app.util.InputValidation;
 
@@ -18,10 +17,11 @@ public class JadwalApp {
         System.out.println("2. Tampilkan jadwal");
         System.out.println("3. Edit jadwal");
         System.out.println("4. Cari jadwal");
-        System.out.println("5. Hapus jadwal");
-        System.out.println("6. Keluar");
+        System.out.println("5. Urutkan jadwal");
+        System.out.println("6. Hapus jadwal");
+        System.out.println("7. Keluar");
         System.out.println("===============================");
-        System.out.print("Masukkan pilihan (1 - 5): ");
+        System.out.print("Masukkan pilihan (1 - 7): ");
     }
 
     public static void showAllJadwal(List<Jadwal> listData) {
@@ -62,7 +62,7 @@ public class JadwalApp {
         String namaMatkul, namaRuang, hari, jamMulai, jamSelesai;
         LocalTime parsedTimeStart, parsedTimeEnd;
         InputValidation validation = new InputValidation();
-        
+
         String error;
         String idEdit = null;
 
@@ -76,7 +76,7 @@ public class JadwalApp {
                     System.out.println(error);
                     break;
                 }
-                
+
                 if (service.searchById(idEdit) != null) {
                     showDetailJadwal(service.searchById(idEdit));
                 }
@@ -115,6 +115,8 @@ public class JadwalApp {
                 break;
             }
 
+            Day parsedDay = service.parseDay(hari);
+
             while (true) {
                 while (true) {
                     System.out.print("- Masukkan jam mulai: ");
@@ -138,17 +140,18 @@ public class JadwalApp {
                     break;
                 }
 
-                parsedTimeStart = validation.parseTime(jamMulai);
-                parsedTimeEnd = validation.parseTime(jamSelesai);
+                parsedTimeStart = service.parseTime(jamMulai);
+                parsedTimeEnd = service.parseTime(jamSelesai);
 
                 error = validation.validateTimeLogic(parsedTimeStart, parsedTimeEnd);
                 if (error != null) {
                     System.out.println(error);
                     continue;
                 }
-                
+
                 String ignoreId = isEdit ? idEdit : null;
-                error = validation.validateTimeConflict(service.showJadwal(), hari, parsedTimeStart, parsedTimeEnd, ignoreId);
+                error = validation.validateTimeConflict(service.showJadwal(), hari, parsedTimeStart, parsedTimeEnd,
+                        ignoreId);
                 if (error != null) {
                     System.out.println(error);
                     continue;
@@ -157,10 +160,10 @@ public class JadwalApp {
             }
 
             if (!isEdit) {
-                service.addData(namaMatkul, namaRuang, hari, parsedTimeStart, parsedTimeEnd);
+                service.addData(namaMatkul, namaRuang, parsedDay, parsedTimeStart, parsedTimeEnd);
                 System.out.println("Data berhasil ditambahkan!\n");
             } else {
-                service.editData(idEdit, namaMatkul, namaRuang, hari, parsedTimeStart, parsedTimeEnd);
+                service.editData(idEdit, namaMatkul, namaRuang, parsedDay, parsedTimeStart, parsedTimeEnd);
                 System.out.println("Data berhasil diedit!\n");
             }
             break;
@@ -180,11 +183,24 @@ public class JadwalApp {
     public static void showMenuSearch() {
         System.out.println("\n=== SEARCH DATA ===");
         System.out.println("1. Cari berdasarkan nama mata kuliah");
-        System.out.println("2. Cari berdasarkan nama ruangan");
-        System.out.println("3. Cari berdasarkan hari");
-        System.out.println("4. Cari berdasarkan jam mulai");
-        System.out.println("5. Cari berdasarkan jam selesai");
-        System.out.print("Masukkan pilihan (1 - 4): ");
+        System.out.println("2. Cari berdasarkan hari");
+        System.out.println("3. Cari berdasarkan id");
+        System.out.print("Masukkan pilihan (1 - 3): ");
+    }
+
+    public static void showMenuSort() {
+        System.out.println("\n=== SORTING DATA ===");
+        System.out.println("1. Urutan berdasarkan hari");
+        System.out.println("2. Urutan berdasarkan hari");
+        System.out.println("3. Urutan berdasarkan jam");
+        System.out.print("Masukkan pilihan (1 - 3): ");
+    }
+
+    public static void showSortType() {
+        System.out.println("Pilih urutan");
+        System.out.println("1. Ascending");
+        System.out.println("2. Descending");
+        System.out.print("Masukkan pilihan (1/2): ");
     }
 
     public static void showMenuRemove() {
@@ -220,14 +236,16 @@ public class JadwalApp {
                     int choiceSearch = sc.nextInt();
                     sc.nextLine();
 
-                    SearchType type = SearchType.fromChoice(choiceSearch);
-                    if (type == null)
+                    SearchType searchType = SearchType.fromChoice(choiceSearch);
+                    if (searchType == null) {
+                        System.out.println("Pilihan tidak valid!");
                         continue;
+                    }
 
-                    System.out.print("Masukkan " + type.toString().toLowerCase() + ": ");
+                    System.out.print("Masukkan " + searchType.toString().toLowerCase() + ": ");
                     String searchValue = sc.nextLine();
 
-                    List<Jadwal> searchResults = service.searchByCondition(type, searchValue);
+                    List<Jadwal> searchResults = service.searchByCondition(searchType, searchValue);
                     if (searchResults.isEmpty()) {
                         System.out.println("Data tidak ditemukan!\n");
                     } else {
@@ -236,6 +254,35 @@ public class JadwalApp {
                     break;
 
                 case 5:
+                    showMenuSort();
+                    int choiceSort = sc.nextInt();
+                    sc.nextLine();
+
+                    SortType sortType = SortType.fromChoice(choiceSort);
+                    if (sortType == null) {
+                        System.out.println("Pilihan tidak valid!");
+                        continue;
+                    }
+
+                    showSortType();
+                    int choiceSortType = sc.nextInt();
+                    sc.nextLine();
+
+                    SortOrder sortOrder = SortOrder.fromChoice(choiceSortType);
+                    if (sortOrder == null) {
+                        System.out.println("Pilihan tidak valid!");
+                        continue;
+                    }
+
+                    List<Jadwal> sortResults = service.sortByCondition(sortType, sortOrder);
+                    if (sortResults.isEmpty()) {
+                        System.out.println("Tidak ada data!\n");
+                    } else {
+                        showAllJadwal(sortResults);
+                    }
+                    break;
+
+                case 6:
                     showMenuRemove();
                     int choiceDelete = sc.nextInt();
                     sc.nextLine();
@@ -277,14 +324,14 @@ public class JadwalApp {
                     }
                     break;
 
-                case 6:
+                case 7:
                     System.out.println("Keluar dari program.");
                     break;
                 default:
                     break;
             }
 
-            if (choice == 6) {
+            if (choice == 7) {
                 break;
             }
         } while (true);

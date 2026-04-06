@@ -7,12 +7,12 @@ public class Jadwal {
     private String id;
     private String namaMatkul;
     private String namaRuang;
-    private String hari;
+    private Day hari;
     private LocalTime jamMulai;
     private LocalTime jamSelesai;
     
     
-    public Jadwal(String id, String namaMatkul, String namaRuang, String hari, LocalTime jamMulai, LocalTime jamSelesai) {
+    public Jadwal(String id, String namaMatkul, String namaRuang, Day hari, LocalTime jamMulai, LocalTime jamSelesai) {
         this.id = id;
         this.namaMatkul = namaMatkul;
         this.namaRuang = namaRuang;
@@ -33,7 +33,7 @@ public class Jadwal {
         return namaRuang;
     }
     
-    public String getHari() {
+    public Day getHari() {
         return hari;
     }
     
@@ -58,7 +58,7 @@ public class Jadwal {
         this.namaRuang = namaRuang;
     }
 
-    public void setHari(String hari) {
+    public void setHari(Day hari) {
         this.hari = hari;
     }
 
