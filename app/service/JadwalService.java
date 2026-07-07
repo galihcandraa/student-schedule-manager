@@ -1,5 +1,6 @@
 package app.service;
 
+import java.io.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import app.util.InputValidation;
 public class JadwalService {
 
     private List<Jadwal> listJadwal = new ArrayList<>();
-
+    private final static String FILE_PATH = "data_jadwal.csv";
     int nextId = 1;
 
     private String generateId() {
@@ -24,6 +25,7 @@ public class JadwalService {
             LocalTime jamSelesai) {
         Jadwal dataBaru = new Jadwal(generateId(), namaMatkul, namaRuang, hari, jamMulai, jamSelesai);
         listJadwal.add(dataBaru);
+        saveToFile();
     }
 
     public List<Jadwal> showJadwal() {
@@ -39,6 +41,7 @@ public class JadwalService {
                 jadwal.setHari(hari);
                 jadwal.setJamMulai(jamMulai);
                 jadwal.setJamSelesai(jamSelesai);
+                saveToFile();
                 return true;
             }
         }
@@ -56,7 +59,7 @@ public class JadwalService {
                     break;
 
                 case HARI:
-                    if (jadwal.getHari().toString().equals(value))
+                    if (jadwal.getHari().toString().equalsIgnoreCase(value))
                         results.add(jadwal);
                     break;
                 case ID:
@@ -103,12 +106,15 @@ public class JadwalService {
     }
 
     public boolean deleteDataById(String id) {
-        return listJadwal.removeIf(j -> j.getId().equals(id));
+        boolean results = listJadwal.removeIf(j -> j.getId().equals(id));
+        if (results) saveToFile();
+        return results;
     }
 
     public void reset() {
         listJadwal.clear();
         nextId = 1;
+        saveToFile();
     }
 
     public Day parseDay(String field) {
@@ -129,5 +135,54 @@ public class JadwalService {
             throw new IllegalArgumentException("Format jam harus HH:mm");
         }
     }
+    
+    public void saveToFile() {
+        try (PrintWriter writter = new PrintWriter(new FileWriter(FILE_PATH))) {
+            for (Jadwal j : listJadwal) {
+                writter.println(
+                    j.getId() + "," + 
+                    j.getNamaMatkul() + "," +
+                    j.getNamaRuang() + "," +
+                    j.getHari() + "," +
+                    j.getJamMulai() + "," +
+                    j.getJamSelesai() 
+                );
+            }
+        } catch (IOException e) {
+            System.out.println("Gagal menyimpan data " + e.getMessage());
+        }
+    } 
 
-}
+    public void loadFromFile() {
+        File file = new File(FILE_PATH);
+        if (!file.exists()) return;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            int maxId = 1;
+
+            while ((line = reader.readLine()) != null) {
+                String[] part = line.split(",");
+                if (part.length < 6) continue;
+
+                String id = part[0];
+                String namaMatkul = part[1];
+                String namaRuang = part[2];
+                Day hari = Day.valueOf(part[3]);
+                LocalTime jamMulai = parseTime(part[4]);
+                LocalTime jamSelesai = parseTime(part[5]);
+
+                listJadwal.add(new Jadwal(id, namaMatkul, namaRuang, hari, jamMulai, jamSelesai));
+
+                int numericId = Integer.parseInt(id.replace("JS226", ""));
+                if (numericId > maxId) {
+                    maxId = numericId++;
+                }
+            }
+
+            nextId = maxId;
+        } catch (IOException e) {
+            System.out.println("Gagal memuat data " + e.getMessage());
+        }
+    }
+} 

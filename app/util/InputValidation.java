@@ -58,7 +58,7 @@ public class InputValidation {
     public String validateTimeConflict(List<Jadwal> data, String targetDay, LocalTime targetStart,
             LocalTime targetEnd, String ignoreId) {
         for (Jadwal jadwal : data) {
-            boolean sameDay = jadwal.getHari().toString().equals(targetDay);
+            boolean sameDay = jadwal.getHari().toString().equalsIgnoreCase(targetDay);
             boolean shouldIgnore = ignoreId != null && jadwal.getId().equalsIgnoreCase(ignoreId);
             boolean isConflict = targetStart.isBefore(jadwal.getJamSelesai())
                     && targetEnd.isAfter(jadwal.getJamMulai());
