@@ -1,0 +1,16 @@
+# Compiled class files
+bin/
+*.class
+out/
+
+# Persisted data 
+data_jadwal.csv
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
