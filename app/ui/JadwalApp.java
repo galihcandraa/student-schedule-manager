@@ -49,7 +49,7 @@ public class JadwalApp {
                 listData.get(i).print();
             }
             System.out.println(
-                    "-------------------------------------------------------------------------------------------------------------------------------------------");
+                    "-------------------------------------------------------------------------------------------------------------------------------------------\n");
         }
     }
 
@@ -178,17 +178,15 @@ public class JadwalApp {
             if (pilFrekuensi != 1) {
                 while (true) {
                     if (pilFrekuensi == 2) {
-                        tglMulai = promptUntilValid(sc, "- Masukkan tanggal mulai: ",
-                                controller::validateFormatDateStart);
+                        tglMulai = promptUntilValid(sc, "- Masukkan tanggal mulai: ", controller::validateFormatDateStart);
                         tglSelesai = tglMulai;
-
+                        
                         parsedDateStart = controller.parseDate(tglMulai);
                         parsedDateEnd = controller.parseDate(tglSelesai);
                         break;
                     }
                     tglMulai = promptUntilValid(sc, "- Masukkan tanggal mulai: ", controller::validateFormatDateStart);
-                    tglSelesai = promptUntilValid(sc, "- Masukkan tanggal selesai: ",
-                            controller::validateFormatDateEnd);
+                    tglSelesai = promptUntilValid(sc, "- Masukkan tanggal selesai: ", controller::validateFormatDateEnd);
 
                     parsedDateStart = controller.parseDate(tglMulai);
                     parsedDateEnd = controller.parseDate(tglSelesai);

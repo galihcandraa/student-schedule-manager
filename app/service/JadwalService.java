@@ -254,7 +254,7 @@ public class JadwalService {
 
             while ((line = reader.readLine()) != null) {
                 String[] part = line.split(",");
-                if (part.length < 6)
+                if (part.length < 11)
                     continue;
 
                 String id = part[0];
@@ -278,7 +278,7 @@ public class JadwalService {
                 }
             }
 
-            nextId = maxId;
+            nextId = maxId + 1;
         }
     }
 }
