@@ -2,14 +2,15 @@ package app.ui;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Function;
 import java.time.LocalTime;
+import java.time.LocalDate;
 
+import app.controller.JadwalController;
 import app.model.*;
-import app.service.JadwalService;
-import app.util.InputValidation;
 
 public class JadwalApp {
-    static JadwalService service = new JadwalService();
+    static JadwalController controller = new JadwalController();
 
     public static void showMenu() {
         System.out.println("===== MANAJEMEN JADWAL MAHASISWA  =====");
@@ -34,44 +35,100 @@ public class JadwalApp {
 
     public static void showAllJadwal(List<Jadwal> listData) {
         if (listData.isEmpty()) {
-            System.out.println("Tidak ada data!\n");
+            System.out.println("Tidak ada jadwal!\n");
         } else {
             System.out.println("\n=== LIST JADWAL ===");
             System.out.println(
-                    "---------------------------------------------------------------------------------------------------");
-            System.out.printf("| %-8s | %-30s | %-10s | %-10s | %-10s | %-12s |%n", "ID", "Mata Kuliah", "Ruang",
-                    "Hari", "Jam Mulai", "Jam Selesai");
+                    "-------------------------------------------------------------------------------------------------------------------------------------------");
+            System.out.printf("| %-6s | %-10s | %-25s | %-10s | %-6s | %-9s | %-11s | %-10s | %-10s | %-11s |%n",
+                    "ID", "Kategori", "Judul", "Lokasi", "Hari", "Jam Mulai", "Jam Selesai", "Frekuensi", "Tgl Mulai",
+                    "Tgl Selesai");
             for (int i = 0; i < listData.size(); i++) {
                 System.out.println(
-                        "---------------------------------------------------------------------------------------------------");
-                System.out.printf("| %-8s | %-30s | %-10s | %-10s | %-10s | %-12s |%n",
-                        listData.get(i).getId(),
-                        listData.get(i).getNamaMatkul(),
-                        listData.get(i).getNamaRuang(),
-                        listData.get(i).getHari(),
-                        listData.get(i).getJamMulai(),
-                        listData.get(i).getJamSelesai());
+                        "-------------------------------------------------------------------------------------------------------------------------------------------");
+                listData.get(i).print();
             }
             System.out.println(
-                    "---------------------------------------------------------------------------------------------------\n");
+                    "-------------------------------------------------------------------------------------------------------------------------------------------");
         }
     }
 
     public static void showDetailJadwal(Jadwal data) {
+        System.out.println("----- Jadwal -----");
         System.out.println("ID                : " + data.getId());
-        System.out.println("Mata Kuliah  : " + data.getNamaMatkul());
-        System.out.println("Ruang             : " + data.getNamaRuang());
+        System.out.println("Kategori          : " + data.getKategori());
+        System.out.println("Judul             : " + data.getJudul());
+        System.out.println("Lokasi            : " + data.getLokasi());
         System.out.println("Hari              : " + data.getHari());
         System.out.println("Jam Mulai         : " + data.getJamMulai());
         System.out.println("Jam Selesai       : " + data.getJamSelesai());
+        System.out.println("Frekuensi         : " + data.getFrekuensi());
+        System.out.println("Tanggal Mulai     : " + data.getTanggalMulai());
+        System.out.println("Tanggal Selesai   : " + data.getTanggalSelesai());
+        System.out.println("Deskripsi         : " + data.getDeskripsi());
+        System.out.println("------------------\n");
+    }
+
+    public static void showMenuCategory() {
+        System.out.println("- kategori ");
+        System.out.println("  1. Kuliah");
+        System.out.println("  2. Organisasi");
+        System.out.println("  3. Pribadi");
+        System.out.println("  4. Kerja");
+    }
+
+    public static void showMenuDay() {
+        System.out.println("- hari");
+        System.out.println("  1. Senin");
+        System.out.println("  2. Selasa");
+        System.out.println("  3. Rabu");
+        System.out.println("  4. Kamis");
+        System.out.println("  5. Jum'at");
+        System.out.println("  6. Sabtu");
+        System.out.println("  7. Minggu");
+    }
+
+    public static void showMenuFrequency() {
+        System.out.println("- frekuensi: ");
+        System.out.println("  1. Selalu");
+        System.out.println("  2. Sekali");
+        System.out.println("  3. Rentang");
+    }
+
+    private static String promptUntilValid(Scanner sc, String prompt, Function<String, String> validator) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.nextLine();
+            String error = validator.apply(input);
+            if (error == null)
+                return input;
+            System.out.println(error);
+        }
+    }
+
+    private static int choicePromptUntilValid(Scanner sc, String prompt, Function<Integer, String> validator) {
+        while (true) {
+            System.out.print(prompt);
+            int input = sc.nextInt();
+            sc.nextLine();
+            String error = validator.apply(input);
+            if (error == null)
+                return input;
+            System.out.println(error);
+        }
     }
 
     public static void inputOrEditData(Scanner sc, boolean isEdit) {
-        String namaMatkul, namaRuang, hari, jamMulai, jamSelesai;
-        LocalTime parsedTimeStart, parsedTimeEnd;
-        InputValidation validation = new InputValidation();
+        Category kategori = null;
+        Day hari = null;
+        LocalTime parsedTimeStart = null, parsedTimeEnd = null;
+        LocalDate parsedDateStart = null, parsedDateEnd = null;
 
-        String error;
+        Frequency frekuensi = null;
+        int pilKategori, pilHari, pilFrekuensi;
+        String judul = null, lokasi = null, jamMulai, jamSelesai, tglMulai = null, tglSelesai = null, deskripsi = null;
+
+        String error, msg;
         String idEdit = null;
 
         while (true) {
@@ -79,87 +136,35 @@ public class JadwalApp {
                 System.out.print("Masukkan ID target: ");
                 idEdit = sc.nextLine();
 
-                error = validation.validateIdEdit(idEdit, service);
+                error = controller.validateIdEdit(idEdit);
                 if (error != null) {
                     System.out.println(error);
                     break;
                 }
 
-                if (service.searchById(idEdit) != null) {
-                    showDetailJadwal(service.searchById(idEdit));
-                }
+                showDetailJadwal(controller.findById(idEdit));
             }
 
-            while (true) {
-                System.out.print("- Masukkan mata kuliah: ");
-                namaMatkul = sc.nextLine();
-                error = validation.validateRequiredText("nama matkul", namaMatkul, 3);
-                if (error != null) {
-                    System.out.println(error);
-                    continue;
-                }
-                break;
-            }
+            showMenuCategory();
+            pilKategori = choicePromptUntilValid(sc, "Masukkan pilihan (1 - 4): ", controller::validateCategory);
+            kategori = Category.fromChoice(pilKategori);
+
+            judul = promptUntilValid(sc, "- Masukkan judul: ", controller::validateTitle);
+            lokasi = promptUntilValid(sc, "- Masukkan lokasi: ", controller::validateLocation);
+
+            showMenuDay();
+            pilHari = choicePromptUntilValid(sc, "Masukkan pilihan (1 - 7): ", controller::validateDay);
+            hari = Day.fromChoice(pilHari);
 
             while (true) {
-                System.out.print("- Masukkan ruangan: ");
-                namaRuang = sc.nextLine();
-                error = validation.validateRequiredText("nama ruangan", namaRuang, 3);
-                if (error != null) {
-                    System.out.println(error);
-                    continue;
-                }
-                break;
-            }
+                jamMulai = promptUntilValid(sc, "- Masukkan jam mulai: ", controller::validateFormatTimeStart);
+                jamSelesai = promptUntilValid(sc, "- Masukkan jam selesai: ", controller::validateFormatTimeEnd);
 
-            while (true) {
-                System.out.print("- Masukkan hari: ");
-                hari = sc.nextLine();
-                error = validation.validateDay(hari);
-                if (error != null) {
-                    System.out.println(error);
-                    continue;
-                }
-                break;
-            }
-
-            Day parsedDay = service.parseDay(hari);
-
-            while (true) {
-                while (true) {
-                    System.out.print("- Masukkan jam mulai: ");
-                    jamMulai = sc.nextLine();
-                    error = validation.validateTimeFormat("jam mulai", jamMulai);
-                    if (error != null) {
-                        System.out.println(error);
-                        continue;
-                    }
-                    break;
-                }
-
-                while (true) {
-                    System.out.print("- Masukkan jam selesai: ");
-                    jamSelesai = sc.nextLine();
-                    error = validation.validateTimeFormat("jam selesai", jamSelesai);
-                    if (error != null) {
-                        System.out.println(error);
-                        continue;
-                    }
-                    break;
-                }
-
-                parsedTimeStart = service.parseTime(jamMulai);
-                parsedTimeEnd = service.parseTime(jamSelesai);
-
-                error = validation.validateTimeLogic(parsedTimeStart, parsedTimeEnd);
-                if (error != null) {
-                    System.out.println(error);
-                    continue;
-                }
+                parsedTimeStart = controller.parseTime(jamMulai);
+                parsedTimeEnd = controller.parseTime(jamSelesai);
 
                 String ignoreId = isEdit ? idEdit : null;
-                error = validation.validateTimeConflict(service.showJadwal(), hari, parsedTimeStart, parsedTimeEnd,
-                        ignoreId);
+                error = controller.validateAllTime(hari, parsedTimeStart, parsedTimeEnd, ignoreId);
                 if (error != null) {
                     System.out.println(error);
                     continue;
@@ -167,14 +172,49 @@ public class JadwalApp {
                 break;
             }
 
-            if (!isEdit) {
-                service.addData(namaMatkul, namaRuang, parsedDay, parsedTimeStart, parsedTimeEnd);
-                System.out.println("Data berhasil ditambahkan!\n");
-            } else {
-                service.editData(idEdit, namaMatkul, namaRuang, parsedDay, parsedTimeStart, parsedTimeEnd);
-                System.out.println("Data berhasil diedit!\n");
+            showMenuFrequency();
+            pilFrekuensi = choicePromptUntilValid(sc, "Masukkan pilihan (1 - 3): ", controller::validateFrequency);
+            frekuensi = Frequency.fromChoice(pilFrekuensi);
+            if (pilFrekuensi != 1) {
+                while (true) {
+                    if (pilFrekuensi == 2) {
+                        tglMulai = promptUntilValid(sc, "- Masukkan tanggal mulai: ",
+                                controller::validateFormatDateStart);
+                        tglSelesai = tglMulai;
+
+                        parsedDateStart = controller.parseDate(tglMulai);
+                        parsedDateEnd = controller.parseDate(tglSelesai);
+                        break;
+                    }
+                    tglMulai = promptUntilValid(sc, "- Masukkan tanggal mulai: ", controller::validateFormatDateStart);
+                    tglSelesai = promptUntilValid(sc, "- Masukkan tanggal selesai: ",
+                            controller::validateFormatDateEnd);
+
+                    parsedDateStart = controller.parseDate(tglMulai);
+                    parsedDateEnd = controller.parseDate(tglSelesai);
+
+                    error = controller.validateDateLogic(parsedDateStart, parsedDateEnd);
+                    if (error != null) {
+                        System.out.println(error);
+                        continue;
+                    }
+                    break;
+                }
             }
+
+            deskripsi = promptUntilValid(sc, "- Masukkan deskripsi (opsional): ", controller::validateDescription);
             break;
+        }
+
+        if (!isEdit) {
+            msg = controller.addJadwal(kategori, judul, lokasi, hari, parsedTimeStart, parsedTimeEnd, frekuensi,
+                    parsedDateStart, parsedDateEnd, deskripsi);
+            System.out.println(msg);
+        } else {
+            msg = controller.editJadwal(idEdit, kategori, judul, lokasi, hari, parsedTimeStart, parsedTimeEnd,
+                    frekuensi,
+                    parsedDateStart, parsedDateEnd, deskripsi);
+            System.out.println(msg);
         }
     }
 
@@ -190,20 +230,23 @@ public class JadwalApp {
 
     public static void showMenuSearch() {
         System.out.println("\n=== CARI JADWAL ===");
-        System.out.println("1. Cari Berdasarkan Mata Kuliah");
-        System.out.println("2. Cari Berdasarkan Hari");
-        System.out.println("3. Cari Berdasarkan ID");
+        System.out.println("1. Cari berdasarkan ID");
+        System.out.println("2. Cari berdasarkan kategori");
+        System.out.println("3. Cari berdasarkan judul");
+        System.out.println("4. Cari berdasarkan hari");
         System.out.println("0. Kembali");
-        System.out.print("Masukkan pilihan (0 - 3): ");
+        System.out.print("Masukkan pilihan (0 - 4): ");
     }
 
     public static void showMenuSort() {
         System.out.println("\n=== URUTAN JADWAL ===");
-        System.out.println("1. Urutan Berdasarkan Mata Kuliah");
-        System.out.println("2. Urutan Berdasarkan Hari");
-        System.out.println("3. Urutan Berdasarkan Jam");
+        System.out.println("1. Urutan berdasarkan kategori");
+        System.out.println("2. Urutan berdasarkan judul");
+        System.out.println("3. Urutan berdasarkan hari");
+        System.out.println("4. Urutan berdasarkan jam");
+        System.out.println("5. Urutan berdasarkan tanggal");
         System.out.println("0. Kembali");
-        System.out.print("Masukkan pilihan (0 - 3): ");
+        System.out.print("Masukkan pilihan (0 - 5): ");
     }
 
     public static void showSortType() {
@@ -216,14 +259,14 @@ public class JadwalApp {
 
     public static void showMenuRemove() {
         System.out.println("\n=== REMOVE JADWAL ===");
-        System.out.println("1. Hapus Berdasarkan ID");
-        System.out.println("2. Hapus Semua");
+        System.out.println("1. Hapus berdasarkan ID");
+        System.out.println("2. Hapus semua");
         System.out.println("0. Kembali");
         System.out.print("Masukkan pilihan (0 - 2): ");
     }
 
     public static void main(String[] args) {
-        service.loadFromFile();
+        controller.loadFromFile();
         Scanner sc = new Scanner(System.in);
         int choice;
 
@@ -236,7 +279,7 @@ public class JadwalApp {
                 case 0:
                     System.out.println("Keluar dari program.");
                     break;
-                    
+
                 case 1:
                     displayShowMenu();
                     int choiceShowMenu = sc.nextInt();
@@ -249,7 +292,7 @@ public class JadwalApp {
 
                     switch (choiceShowMenu) {
                         case 1:
-                            showAllJadwal(service.showJadwal());
+                            showAllJadwal(controller.showJadwal());
                             break;
 
                         case 2:
@@ -271,19 +314,21 @@ public class JadwalApp {
                             System.out.print("Masukkan " + searchType.toString().toLowerCase() + ": ");
                             String searchValue = sc.nextLine();
 
-                            List<Jadwal> searchResults = service.searchByCondition(searchType, searchValue);
-                            if (searchResults.isEmpty()) {
-                                System.out.println("Data tidak ditemukan!\n");
+                            Jadwal searchResults = controller.searchJadwal(searchType, searchValue);
+                            if (searchResults == null) {
+                                System.out.println(
+                                        "Jadwal dengan " + searchType + ": " + searchValue + " tidak ditemukan\n");
                             } else {
-                                showAllJadwal(searchResults);
+                                showDetailJadwal(searchResults);
                             }
+                            ;
                             break;
 
                         case 3:
                             showMenuSort();
                             int choiceSort = sc.nextInt();
                             sc.nextLine();
-                            
+
                             if (choiceSort == 0) {
                                 System.out.println("Kembali\n");
                                 break;
@@ -310,7 +355,7 @@ public class JadwalApp {
                                 continue;
                             }
 
-                            List<Jadwal> sortResults = service.sortByCondition(sortType, sortOrder);
+                            List<Jadwal> sortResults = controller.sortJadwal(sortType, sortOrder);
                             if (sortResults.isEmpty()) {
                                 System.out.println("Tidak ada data!\n");
                             } else {
@@ -344,14 +389,12 @@ public class JadwalApp {
 
                     switch (choiceDelete) {
                         case 1:
+                            String msg;
                             System.out.print("Masukkan ID: ");
                             String deleteId = sc.nextLine();
 
-                            if (!service.deleteDataById(deleteId)) {
-                                System.out.println("Data berdasarkan ID tidak ada!\n");
-                            } else {
-                                System.out.println("Data berhasil dihapus.\n");
-                            }
+                            msg = controller.deleteById(deleteId);
+                            System.out.println(msg);
                             break;
 
                         case 2:
@@ -360,8 +403,8 @@ public class JadwalApp {
 
                             switch (DelAll) {
                                 case "y", "Y":
-                                    service.reset();
-                                    System.out.println("Semua data berhasil dihapus!\n");
+                                    msg = controller.reset();
+                                    System.out.println(msg);
                                     break;
 
                                 case "n", "N":
