@@ -4,7 +4,7 @@ bin/
 out/
 
 # Persisted data 
-data_jadwal.csv
+data/data_jadwal.csv
 
 # IDE files
 .vscode/

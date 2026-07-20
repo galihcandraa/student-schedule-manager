@@ -1,18 +1,21 @@
 package app.model;
 
 public enum SearchType {
-    MATKUL, HARI, ID;
+    ID, KATEGORI, JUDUL, HARI;
 
     public static SearchType fromChoice(int choice) {
         switch (choice) {
             case 1:
-                return MATKUL;
+                return ID;
 
             case 2:
-                return HARI;
+                return KATEGORI;
 
             case 3:
-                return ID;
+                return JUDUL;
+
+            case 4:
+                return HARI;
                 
             default:
                 return null;

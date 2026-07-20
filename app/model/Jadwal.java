@@ -1,42 +1,62 @@
 package app.model;
 
-import java.time.LocalTime;
+import java.time.*;
+
+import app.util.DateTimeFormatters;
 
 public class Jadwal {
-    
+
     private String id;
-    private String namaMatkul;
-    private String namaRuang;
+    private Category kategori;
+    private String judul;
+    private String lokasi;
     private Day hari;
     private LocalTime jamMulai;
     private LocalTime jamSelesai;
-    
-    
-    public Jadwal(String id, String namaMatkul, String namaRuang, Day hari, LocalTime jamMulai, LocalTime jamSelesai) {
+    private Frequency frekuensi;
+    private LocalDate tanggalMulai;
+    private LocalDate tanggalSelesai;
+    private String deskripsi;
+
+    public Jadwal() {
+    };
+
+    public Jadwal(String id, Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
+            LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
+            String deskripsi) {
         this.id = id;
-        this.namaMatkul = namaMatkul;
-        this.namaRuang = namaRuang;
+        this.kategori = kategori;
+        this.judul = judul;
+        this.lokasi = lokasi;
         this.hari = hari;
         this.jamMulai = jamMulai;
         this.jamSelesai = jamSelesai;
+        this.frekuensi = frekuensi;
+        this.tanggalMulai = tanggalMulai;
+        this.tanggalSelesai = tanggalSelesai;
+        this.deskripsi = deskripsi;
     }
 
     public String getId() {
         return id;
     }
 
-    public String getNamaMatkul() {
-        return namaMatkul;
+    public Category getKategori() {
+        return kategori;
     }
 
-    public String getNamaRuang() {
-        return namaRuang;
+    public String getJudul() {
+        return judul;
     }
-    
+
+    public String getLokasi() {
+        return lokasi;
+    }
+
     public Day getHari() {
         return hari;
     }
-    
+
     public LocalTime getJamMulai() {
         return jamMulai;
     }
@@ -45,17 +65,32 @@ public class Jadwal {
         return jamSelesai;
     }
 
-    @Override
-    public String toString() {
-        return "Jadwal [ID=" + id + ", namaMatkul=" + namaMatkul + ", namaRuang=" + namaRuang + ", hari=" + hari + ", jam mulai=" + jamMulai + ", jam selesai=" + jamSelesai + "]";
+    public Frequency getFrekuensi() {
+        return frekuensi;
     }
 
-    public void setNamaMatkul(String namaMatkul) {
-        this.namaMatkul = namaMatkul;
+    public LocalDate getTanggalMulai() {
+        return tanggalMulai;
     }
 
-    public void setNamaRuang(String namaRuang) {
-        this.namaRuang = namaRuang;
+    public LocalDate getTanggalSelesai() {
+        return tanggalSelesai;
+    }
+
+    public String getDeskripsi() {
+        return deskripsi;
+    }
+
+    public void setKategori(Category kategori) {
+        this.kategori = kategori;
+    }
+
+    public void setJudul(String judul) {
+        this.judul = judul;
+    }
+
+    public void setLokasi(String lokasi) {
+        this.lokasi = lokasi;
     }
 
     public void setHari(Day hari) {
@@ -68,5 +103,38 @@ public class Jadwal {
 
     public void setJamSelesai(LocalTime jamSelesai) {
         this.jamSelesai = jamSelesai;
+    }
+
+    public void setFrekuensi(Frequency frekuensi) {
+        this.frekuensi = frekuensi;
+    }
+
+    public void setTanggalMulai(LocalDate tanggalMulai) {
+        this.tanggalMulai = tanggalMulai;
+    }
+
+    public void setTanggalSelesai(LocalDate tanggalSelesai) {
+        this.tanggalSelesai = tanggalSelesai;
+    }
+
+    public void setDeskripsi(String deskripsi) {
+        this.deskripsi = deskripsi;
+    }
+
+    public void print() {
+        String tglMulaiStr = (getTanggalMulai() == null) ? "-" : getTanggalMulai().format(DateTimeFormatters.DATE_FORMATTER);
+        String tglSelesaiStr = (getTanggalSelesai() == null) ? "-" : getTanggalSelesai().format(DateTimeFormatters.DATE_FORMATTER);
+
+        System.out.printf("| %-6s | %-10s | %-25s | %-10s | %-6s | %-9s | %-11s | %-10s | %-10s | %-11s |%n",
+            getId(),
+            getKategori(),
+            getJudul(),
+            getLokasi(),
+            getHari(),
+            getJamMulai(),
+            getJamSelesai(),
+            getFrekuensi(),
+            tglMulaiStr,
+            tglSelesaiStr);
     }
 }

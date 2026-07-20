@@ -1,19 +1,19 @@
 package app.service;
 
 import java.io.*;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 import app.model.*;
-import app.util.InputValidation;
+import app.util.*;
 
 public class JadwalService {
 
     private List<Jadwal> listJadwal = new ArrayList<>();
-    private final static String FILE_PATH = "data_jadwal.csv";
+    private final static String FILE_PATH = "data/data_jadwal.csv";
     int nextId = 1;
 
     private String generateId() {
@@ -21,26 +21,36 @@ public class JadwalService {
         return id;
     }
 
-    public void addData(String namaMatkul, String namaRuang, Day hari, LocalTime jamMulai,
-            LocalTime jamSelesai) {
-        Jadwal dataBaru = new Jadwal(generateId(), namaMatkul, namaRuang, hari, jamMulai, jamSelesai);
-        listJadwal.add(dataBaru);
-        saveToFile();
-    }
-
     public List<Jadwal> showJadwal() {
         return new ArrayList<>(listJadwal);
     }
 
-    public boolean editData(String id, String matkul, String ruang, Day hari, LocalTime jamMulai,
-            LocalTime jamSelesai) {
+    public void addData(Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
+            LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
+            String deskripsi) throws IOException {
+        if (deskripsi.isBlank())
+            deskripsi = "-";
+        Jadwal dataBaru = new Jadwal(generateId(), kategori, judul, lokasi, hari, jamMulai, jamSelesai, frekuensi,
+                tanggalMulai, tanggalSelesai, deskripsi);
+        listJadwal.add(dataBaru);
+        saveToFile();
+    }
+
+    public boolean editData(String id, Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
+            LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
+            String deskripsi) throws IOException {
         for (Jadwal jadwal : listJadwal) {
             if (jadwal.getId().equals(id)) {
-                jadwal.setNamaMatkul(matkul);
-                jadwal.setNamaRuang(ruang);
+                jadwal.setKategori(kategori);
+                jadwal.setJudul(judul);
+                jadwal.setLokasi(lokasi);
                 jadwal.setHari(hari);
                 jadwal.setJamMulai(jamMulai);
                 jadwal.setJamSelesai(jamSelesai);
+                jadwal.setFrekuensi(frekuensi);
+                jadwal.setTanggalMulai(tanggalMulai);
+                jadwal.setTanggalSelesai(tanggalSelesai);
+                jadwal.setDeskripsi(deskripsi);
                 saveToFile();
                 return true;
             }
@@ -48,29 +58,36 @@ public class JadwalService {
         return false;
     }
 
-    public List<Jadwal> searchByCondition(SearchType type, String value) {
-        List<Jadwal> results = new ArrayList<>();
+    public Jadwal searchByCondition(SearchType type, String value) {
+        Jadwal results = null;
 
         for (Jadwal jadwal : listJadwal) {
             switch (type) {
-                case MATKUL:
-                    if (jadwal.getNamaMatkul().equalsIgnoreCase(value))
-                        results.add(jadwal);
+                case ID:
+                    if (jadwal.getId().equalsIgnoreCase(value))
+                        results = jadwal;
+                    break;
+
+                case KATEGORI:
+                    if (jadwal.getKategori().toString().equalsIgnoreCase(value))
+                        results = jadwal;
+                    break;
+
+                case JUDUL:
+                    if (jadwal.getJudul().equalsIgnoreCase(value))
+                        results = jadwal;
                     break;
 
                 case HARI:
                     if (jadwal.getHari().toString().equalsIgnoreCase(value))
-                        results.add(jadwal);
+                        results = jadwal;
                     break;
-                case ID:
-                    if (jadwal.getId().equalsIgnoreCase(value))
-                        results.add(jadwal);
             }
         }
         return results;
     }
 
-    public Jadwal searchById(String id) {
+    public Jadwal findById(String id) {
         for (Jadwal j : listJadwal) {
             if (j.getId().equals(id)) {
                 return j;
@@ -85,8 +102,12 @@ public class JadwalService {
         Comparator<Jadwal> comparator = null;
 
         switch (type) {
-            case MATKUL:
-                comparator = Comparator.comparing(Jadwal::getNamaMatkul);
+            case KATEGORI:
+                comparator = Comparator.comparing(Jadwal::getKategori);
+                break;
+
+            case JUDUL:
+                comparator = Comparator.comparing(Jadwal::getJudul);
                 break;
 
             case HARI:
@@ -95,6 +116,11 @@ public class JadwalService {
 
             case JAM_MULAI:
                 comparator = Comparator.comparing(Jadwal::getJamMulai);
+                break;
+
+            case TANGGAL_MULAI:
+                comparator = Comparator.comparing(Jadwal::getTanggalMulai)
+                        .thenComparing(Jadwal::getJamMulai);
                 break;
         }
         if (order == SortOrder.DESCENDING) {
@@ -105,57 +131,122 @@ public class JadwalService {
         return results;
     }
 
-    public boolean deleteDataById(String id) {
+    public boolean deleteById(String id) throws IOException {
         boolean results = listJadwal.removeIf(j -> j.getId().equals(id));
-        if (results) saveToFile();
+        if (results)
+            saveToFile();
         return results;
     }
 
-    public void reset() {
+    public String reset() throws IOException {
         listJadwal.clear();
         nextId = 1;
         saveToFile();
+        return "Berhasil menghapus semua jadwal!\n";
     }
 
-    public Day parseDay(String field) {
-        Day result;
+    public String validateTimeLogic(LocalTime targetStart, LocalTime targetEnd) {
+        if (!targetStart.isBefore(targetEnd)) {
+            return "[ERROR] Jam mulai wajib sebelum jam selesai, ulangi!";
+        }
+        return null;
+    }
+    
+    public String validateTimeConflict(Day targetDay, LocalTime targetStart,
+            LocalTime targetEnd, String ignoreId) {
+        for (Jadwal jadwal : listJadwal) {
+            boolean sameDay = jadwal.getHari() == targetDay;
+            boolean shouldIgnore = ignoreId != null && jadwal.getId().equalsIgnoreCase(ignoreId);
+            boolean isConflict = targetStart.isBefore(jadwal.getJamSelesai())
+                    && targetEnd.isAfter(jadwal.getJamMulai());
 
+            if (sameDay && !shouldIgnore && isConflict) {
+                return "[ERROR] Jadwal bentrok dengan " + jadwal.getJudul() + " (" + jadwal.getJamMulai()
+                        + " - " + jadwal.getJamSelesai() + ") " + ", ulangi!";
+            }
+        }
+        return null;
+    }
+
+    public String validateDateLogic(LocalDate targetStart, LocalDate targetEnd) {
+        if (!targetStart.isBefore(targetEnd)) {
+            return "[ERROR] tanggal mulai wajib sebelum tanggal selesai, ulangi!";
+        }
+        return null;
+    }
+
+    public Category parseCategory(String field) {
         try {
-            result = Day.valueOf(field.toUpperCase());
+            return Category.valueOf(field.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Tidak berhasil konversi tipe data");
         }
-        return result;
+    }
+
+    public Day parseDay(String field) {
+        try {
+            return Day.valueOf(field.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Tidak berhasil konversi tipe data");
+        }
+    }
+
+    public Frequency parseFrequency(String field) {
+        try {
+            return Frequency.valueOf(field.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Tidak berhasil konversi tipe data");
+        }
     }
 
     public LocalTime parseTime(String field) {
         try {
-            return LocalTime.parse(field, InputValidation.TIME_FORMATTER);
+            return LocalTime.parse(field, DateTimeFormatters.TIME_FORMATTER);
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Format jam harus HH:mm");
         }
     }
-    
-    public void saveToFile() {
-        try (PrintWriter writter = new PrintWriter(new FileWriter(FILE_PATH))) {
-            for (Jadwal j : listJadwal) {
-                writter.println(
-                    j.getId() + "," + 
-                    j.getNamaMatkul() + "," +
-                    j.getNamaRuang() + "," +
-                    j.getHari() + "," +
-                    j.getJamMulai() + "," +
-                    j.getJamSelesai() 
-                );
-            }
-        } catch (IOException e) {
-            System.out.println("Gagal menyimpan data " + e.getMessage());
-        }
-    } 
 
-    public void loadFromFile() {
+    public LocalDate parseDate(String field) {
+        try {
+            return LocalDate.parse(field, DateTimeFormatters.DATE_FORMATTER);
+        } catch (DateTimeException e) {
+            throw new IllegalArgumentException("Format tanggal harus dd-MM-yyyy");
+        }
+    }
+
+    public void saveToFile() throws IOException {
         File file = new File(FILE_PATH);
-        if (!file.exists()) return;
+        File parentDir = file.getParentFile();
+        if (parentDir != null) {
+            parentDir.mkdirs();
+        }
+
+        try (PrintWriter writter = new PrintWriter(new FileWriter(file))) {
+            for (Jadwal j : listJadwal) {
+                String tglMulaiCsv = (j.getTanggalMulai() == null) ? "" : j.getTanggalMulai().toString();
+                String tglSelesaiCsv = (j.getTanggalSelesai() == null) ? "" : j.getTanggalSelesai().toString();
+                writter.println(
+                        j.getId() + "," +
+                                j.getKategori() + "," +
+                                j.getJudul() + "," +
+                                j.getLokasi() + "," +
+                                j.getHari() + "," +
+                                j.getJamMulai() + "," +
+                                j.getJamSelesai() + "," +
+                                j.getFrekuensi() + "," +
+                                tglMulaiCsv + "," +
+                                tglSelesaiCsv + "," +
+                                j.getDeskripsi() + "," +
+                                LocalDateTime.now());
+            }
+        }
+    }
+
+    public void loadFromFile() throws IOException {
+        File file = new File(FILE_PATH);
+        if (!file.exists())
+            return;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
@@ -163,26 +254,31 @@ public class JadwalService {
 
             while ((line = reader.readLine()) != null) {
                 String[] part = line.split(",");
-                if (part.length < 6) continue;
+                if (part.length < 6)
+                    continue;
 
                 String id = part[0];
-                String namaMatkul = part[1];
-                String namaRuang = part[2];
-                Day hari = Day.valueOf(part[3]);
-                LocalTime jamMulai = parseTime(part[4]);
-                LocalTime jamSelesai = parseTime(part[5]);
+                Category kategori = parseCategory(part[1]);
+                String judul = part[2];
+                String lokasi = part[3];
+                Day hari = parseDay(part[4]);
+                LocalTime jamMulai = parseTime(part[5]);
+                LocalTime jamSelesai = parseTime(part[6]);
+                Frequency frekuensi = parseFrequency(part[7]);
+                LocalDate tanggalMulai = part[8].isBlank() ? null : LocalDate.parse(part[8]);
+                LocalDate tanggalSelesai = part[9].isBlank() ? null : LocalDate.parse(part[9]);
+                String deskripsi = part[10];
 
-                listJadwal.add(new Jadwal(id, namaMatkul, namaRuang, hari, jamMulai, jamSelesai));
+                listJadwal.add(new Jadwal(id, kategori, judul, lokasi, hari, jamMulai, jamSelesai, frekuensi,
+                        tanggalMulai, tanggalSelesai, deskripsi));
 
                 int numericId = Integer.parseInt(id.replace("JS226", ""));
                 if (numericId > maxId) {
-                    maxId = numericId++;
+                    maxId = ++numericId;
                 }
             }
 
             nextId = maxId;
-        } catch (IOException e) {
-            System.out.println("Gagal memuat data " + e.getMessage());
         }
     }
-} 
+}
