@@ -1,4 +1,4 @@
-package app.model;
+package com.github.galihcandraa.personal_planner.model;
 
 public enum SortType {
     KATEGORI, JUDUL, HARI, JAM_MULAI, TANGGAL_MULAI;

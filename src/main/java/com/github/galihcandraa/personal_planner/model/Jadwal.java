@@ -1,8 +1,8 @@
-package app.model;
+package com.github.galihcandraa.personal_planner.model;
 
 import java.time.*;
 
-import app.util.DateTimeFormatters;
+import com.github.galihcandraa.personal_planner.util.DateTimeFormatters;
 
 public class Jadwal {
 

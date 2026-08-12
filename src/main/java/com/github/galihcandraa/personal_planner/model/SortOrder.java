@@ -1,4 +1,4 @@
-package app.model;
+package com.github.galihcandraa.personal_planner.model;
 
 public enum SortOrder {
     ASCENDING, DESCENDING;

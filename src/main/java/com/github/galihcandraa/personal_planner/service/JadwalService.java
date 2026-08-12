@@ -1,4 +1,4 @@
-package app.service;
+package com.github.galihcandraa.personal_planner.service;
 
 import java.io.*;
 import java.time.*;
@@ -6,10 +6,13 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import org.springframework.stereotype.Service;
+import jakarta.validation.ValidationException;
 
-import app.model.*;
-import app.util.*;
+import com.github.galihcandraa.personal_planner.model.*;
+import com.github.galihcandraa.personal_planner.util.*;
 
+@Service
 public class JadwalService {
 
     private List<Jadwal> listJadwal = new ArrayList<>();
@@ -27,18 +30,17 @@ public class JadwalService {
 
     public void addData(Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
             LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
-            String deskripsi) throws IOException {
+            String deskripsi) {
         if (deskripsi.isBlank())
             deskripsi = "-";
         Jadwal dataBaru = new Jadwal(generateId(), kategori, judul, lokasi, hari, jamMulai, jamSelesai, frekuensi,
                 tanggalMulai, tanggalSelesai, deskripsi);
         listJadwal.add(dataBaru);
-        saveToFile();
     }
 
     public boolean editData(String id, Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
             LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
-            String deskripsi) throws IOException {
+            String deskripsi) {
         for (Jadwal jadwal : listJadwal) {
             if (jadwal.getId().equals(id)) {
                 jadwal.setKategori(kategori);
@@ -51,7 +53,6 @@ public class JadwalService {
                 jadwal.setTanggalMulai(tanggalMulai);
                 jadwal.setTanggalSelesai(tanggalSelesai);
                 jadwal.setDeskripsi(deskripsi);
-                saveToFile();
                 return true;
             }
         }
@@ -93,7 +94,7 @@ public class JadwalService {
                 return j;
             }
         }
-        return null;
+        throw new ValidationException("Pencarian gagal, ID tidak ditemukan!");
     }
 
     public List<Jadwal> sortByCondition(SortType type, SortOrder order) {
@@ -131,10 +132,11 @@ public class JadwalService {
         return results;
     }
 
-    public boolean deleteById(String id) throws IOException {
+    public boolean deleteById(String id) {
         boolean results = listJadwal.removeIf(j -> j.getId().equals(id));
-        if (results)
-            saveToFile();
+        if (!results)
+            throw new ValidationException("Penghapusan gagal, ID tidak ditemukan!");
+
         return results;
     }
 
@@ -145,13 +147,12 @@ public class JadwalService {
         return "Berhasil menghapus semua jadwal!\n";
     }
 
-    public String validateTimeLogic(LocalTime targetStart, LocalTime targetEnd) {
-        if (!targetStart.isBefore(targetEnd)) {
-            return "[ERROR] Jam mulai wajib sebelum jam selesai, ulangi!";
+    public void validateTimeLogic(LocalTime targetStart, LocalTime targetEnd) {
+        if (targetStart.isAfter(targetEnd)) {
+            throw new ValidationException("[ERROR] Jam mulai wajib sebelum jam selesai, ulangi!");
         }
-        return null;
     }
-    
+
     public String validateTimeConflict(Day targetDay, LocalTime targetStart,
             LocalTime targetEnd, String ignoreId) {
         for (Jadwal jadwal : listJadwal) {
@@ -161,18 +162,18 @@ public class JadwalService {
                     && targetEnd.isAfter(jadwal.getJamMulai());
 
             if (sameDay && !shouldIgnore && isConflict) {
-                return "[ERROR] Jadwal bentrok dengan " + jadwal.getJudul() + " (" + jadwal.getJamMulai()
-                        + " - " + jadwal.getJamSelesai() + ") " + ", ulangi!";
+                throw new ValidationException(
+                        "[ERROR] Jadwal bentrok dengan " + jadwal.getJudul() + " (" + jadwal.getJamMulai()
+                                + " - " + jadwal.getJamSelesai() + ") " + ", ulangi!");
             }
         }
         return null;
     }
 
-    public String validateDateLogic(LocalDate targetStart, LocalDate targetEnd) {
-        if (!targetStart.isBefore(targetEnd)) {
-            return "[ERROR] tanggal mulai wajib sebelum tanggal selesai, ulangi!";
+    public void validateDateLogic(LocalDate targetStart, LocalDate targetEnd) {
+        if (targetStart.isAfter(targetEnd)) {
+            throw new ValidationException("[ERROR] tanggal mulai wajib sebelum tanggal selesai, ulangi!");
         }
-        return null;
     }
 
     public Category parseCategory(String field) {

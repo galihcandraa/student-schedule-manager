@@ -1,4 +1,4 @@
-package app.util;
+package com.github.galihcandraa.personal_planner.util;
 
 import java.time.format.DateTimeFormatter;
 

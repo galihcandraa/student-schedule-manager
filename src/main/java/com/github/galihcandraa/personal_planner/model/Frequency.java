@@ -1,4 +1,4 @@
-package app.model;
+package com.github.galihcandraa.personal_planner.model;
 
 public enum Frequency {
     SELALU, SEKALI, RENTANG;
