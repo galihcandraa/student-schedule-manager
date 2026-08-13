@@ -4,16 +4,54 @@ import java.time.*;
 
 import com.github.galihcandraa.personal_planner.util.DateTimeFormatters;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+@Entity
 public class Jadwal {
 
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(length = 15, nullable = false)
+    private long id;
+    
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Category kategori;
+
+    @NotBlank
+    @Column(nullable = false, length = 150)
     private String judul;
+
+    @Column(length = 100)
     private String lokasi;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Day hari;
+    
+    @NotNull
+    @Column(nullable = false)
     private LocalTime jamMulai;
+
+    @NotNull
+    @Column(nullable = false)
     private LocalTime jamSelesai;
+    
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Frequency frekuensi;
+    
     private LocalDate tanggalMulai;
     private LocalDate tanggalSelesai;
     private String deskripsi;
@@ -21,10 +59,9 @@ public class Jadwal {
     public Jadwal() {
     };
 
-    public Jadwal(String id, Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
+    public Jadwal(Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
             LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
             String deskripsi) {
-        this.id = id;
         this.kategori = kategori;
         this.judul = judul;
         this.lokasi = lokasi;
@@ -37,7 +74,7 @@ public class Jadwal {
         this.deskripsi = deskripsi;
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 

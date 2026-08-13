@@ -28,11 +28,13 @@ public class JadwalController {
         this.service = service;
     }
 
+    // mengambil semua data jadwal
     @GetMapping
     public List<Jadwal> getAll() {
         return service.showJadwal();
     }
 
+    // menambahkan data jadwal
     @PostMapping
     public ResponseEntity<?> add(@RequestBody JadwalRequest request) {
         Category kategori = service.parseCategory(request.getKategori());
@@ -40,41 +42,45 @@ public class JadwalController {
         LocalTime jamMulai = service.parseTime(request.getJamMulai());
         LocalTime jamSelesai = service.parseTime(request.getJamSelesai());
         service.validateTimeLogic(jamMulai, jamSelesai);
-        service.validateTimeConflict(hari, jamMulai, jamSelesai, null);
+        service.validateTimeConflict(hari, jamMulai, jamSelesai, 0);
         
         Frequency frekuensi = service.parseFrequency(request.getFrekuensi());
         LocalDate tglMulai = service.parseDate(request.getTglMulai());
         LocalDate tglSelesai = service.parseDate(request.getTglSelesai());
         service.validateDateLogic(tglMulai, tglSelesai);
 
-        service.addData(kategori, request.getJudul(), request.getLokasi(), hari, jamMulai, jamSelesai, frekuensi, tglMulai, tglSelesai, request.getDeskripsi());
+        service.addJadwal(kategori, request.getJudul(), request.getLokasi(), hari, jamMulai, jamSelesai, frekuensi, tglMulai, tglSelesai, request.getDeskripsi());
         return ResponseEntity.ok("Berhasil ditambahkan");
     }
     
+    // mencari id yang cocok
     @GetMapping("/{id}")
-    public Jadwal getById(@PathVariable String id) {
+    public Jadwal getById(@PathVariable long id) {
         return service.findById(id);
     }
     
+    // mengedit data jadwal
     @PutMapping("/{id}")
-    public ResponseEntity<String> edit(@PathVariable String id, @RequestBody JadwalRequest request) {
+    public ResponseEntity<String> edit(@PathVariable long id, @RequestBody JadwalRequest request) {
         Category kategori = service.parseCategory(request.getKategori());
         Day hari = service.parseDay(request.getHari());
         LocalTime jamMulai = service.parseTime(request.getJamMulai());
         LocalTime jamSelesai = service.parseTime(request.getJamSelesai());
         service.validateTimeLogic(jamMulai, jamSelesai);
+        service.validateTimeConflict(hari, jamMulai, jamSelesai, id);
         
         Frequency frekuensi = service.parseFrequency(request.getFrekuensi());
         LocalDate tglMulai = service.parseDate(request.getTglMulai());
         LocalDate tglSelesai = service.parseDate(request.getTglSelesai());
         service.validateDateLogic(tglMulai, tglSelesai);
     
-        service.editData(id, kategori, request.getJudul(), request.getLokasi(), hari, jamMulai, jamSelesai, frekuensi, tglMulai, tglSelesai, request.getDeskripsi());
+        service.editJadwal(id, kategori, request.getJudul(), request.getLokasi(), hari, jamMulai, jamSelesai, frekuensi, tglMulai, tglSelesai, request.getDeskripsi());
         return ResponseEntity.ok("Berhasil diedit");
     }
 
+    // menghapus data jadwal sesuai id
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable String id) {
+    public ResponseEntity<String> delete(@PathVariable long id) {
         service.deleteById(id);
         return ResponseEntity.ok("Berhasil dihapus");
     }
