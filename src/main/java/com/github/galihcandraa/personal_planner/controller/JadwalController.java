@@ -1,10 +1,8 @@
 package com.github.galihcandraa.personal_planner.controller;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
-import com.github.galihcandraa.personal_planner.service.*;
+import com.github.galihcandraa.personal_planner.service.JadwalService;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.github.galihcandraa.personal_planner.dto.JadwalRequest;
 import com.github.galihcandraa.personal_planner.model.*;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/jadwal")
@@ -30,51 +29,31 @@ public class JadwalController {
 
     // mengambil semua data jadwal
     @GetMapping
-    public List<Jadwal> getAll() {
-        return service.showJadwal();
+    public ResponseEntity<List<Jadwal>> getAll() {
+        return ResponseEntity.ok(service.showJadwal());
     }
 
     // menambahkan data jadwal
     @PostMapping
     public ResponseEntity<?> add(@RequestBody JadwalRequest request) {
-        Category kategori = service.parseCategory(request.getKategori());
-        Day hari = service.parseDay(request.getHari());
-        LocalTime jamMulai = service.parseTime(request.getJamMulai());
-        LocalTime jamSelesai = service.parseTime(request.getJamSelesai());
-        service.validateTimeLogic(jamMulai, jamSelesai);
-        service.validateTimeConflict(hari, jamMulai, jamSelesai, 0);
-        
-        Frequency frekuensi = service.parseFrequency(request.getFrekuensi());
-        LocalDate tglMulai = service.parseDate(request.getTglMulai());
-        LocalDate tglSelesai = service.parseDate(request.getTglSelesai());
-        service.validateDateLogic(tglMulai, tglSelesai);
+        Jadwal jadwalBaru = request.toEntity();
 
-        service.addJadwal(kategori, request.getJudul(), request.getLokasi(), hari, jamMulai, jamSelesai, frekuensi, tglMulai, tglSelesai, request.getDeskripsi());
+        service.addJadwal(jadwalBaru);
         return ResponseEntity.ok("Berhasil ditambahkan");
     }
     
     // mencari id yang cocok
     @GetMapping("/{id}")
-    public Jadwal getById(@PathVariable long id) {
-        return service.findById(id);
+    public ResponseEntity<Jadwal> getById(@PathVariable long id) {
+        return ResponseEntity.ok(service.findById(id));
     }
     
     // mengedit data jadwal
     @PutMapping("/{id}")
     public ResponseEntity<String> edit(@PathVariable long id, @RequestBody JadwalRequest request) {
-        Category kategori = service.parseCategory(request.getKategori());
-        Day hari = service.parseDay(request.getHari());
-        LocalTime jamMulai = service.parseTime(request.getJamMulai());
-        LocalTime jamSelesai = service.parseTime(request.getJamSelesai());
-        service.validateTimeLogic(jamMulai, jamSelesai);
-        service.validateTimeConflict(hari, jamMulai, jamSelesai, id);
-        
-        Frequency frekuensi = service.parseFrequency(request.getFrekuensi());
-        LocalDate tglMulai = service.parseDate(request.getTglMulai());
-        LocalDate tglSelesai = service.parseDate(request.getTglSelesai());
-        service.validateDateLogic(tglMulai, tglSelesai);
-    
-        service.editJadwal(id, kategori, request.getJudul(), request.getLokasi(), hari, jamMulai, jamSelesai, frekuensi, tglMulai, tglSelesai, request.getDeskripsi());
+        Jadwal jadwalEdit = request.toEntity();
+
+        service.editJadwal(jadwalEdit, id);
         return ResponseEntity.ok("Berhasil diedit");
     }
 

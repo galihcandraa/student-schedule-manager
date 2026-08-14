@@ -1,49 +1,117 @@
 package com.github.galihcandraa.personal_planner.dto;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+import com.github.galihcandraa.personal_planner.model.*;
+
 public class JadwalRequest {
+    private Category kategori;
     private String judul;
     private String lokasi;
-    private String kategori;
-    private String hari;
-    private String jamMulai;
-    private String jamSelesai;
-    private String frekuensi;
-    private String tglMulai;
-    private String tglSelesai;
+    private Day hari;
+    private LocalTime jamMulai;
+    private LocalTime jamSelesai;
+    private Frequency frekuensi;
+    private LocalDate tanggalMulai;
+    private LocalDate tanggalSelesai;
     private String deskripsi;
 
-    // WAJIB: Constructor kosong yang dicari oleh Jackson
     public JadwalRequest() {
     }
 
-    // Getter dan Setter
-    public String getJudul() { return judul; }
-    public void setJudul(String judul) { this.judul = judul; }
+    public Jadwal toEntity() {
+        Jadwal jadwal = new Jadwal();
+        jadwal.setKategori(this.kategori);
+        jadwal.setJudul(this.judul);
+        jadwal.setLokasi(this.lokasi);
+        jadwal.setHari(this.hari);
+        jadwal.setJamMulai(this.jamMulai);
+        jadwal.setJamSelesai(this.jamSelesai);
+        jadwal.setFrekuensi(this.frekuensi);
+        jadwal.setTanggalMulai(this.tanggalMulai);
+        jadwal.setTanggalSelesai(this.tanggalSelesai);
+        jadwal.setDeskripsi(deskripsi);
+        return jadwal;
+    }
 
-    public String getLokasi() { return lokasi; }
-    public void setLokasi(String lokasi) { this.lokasi = lokasi; }
+    public String getJudul() {
+        return judul;
+    }
 
-    public String getKategori() { return kategori; }
-    public void setKategori(String kategori) { this.kategori = kategori; }
+    public void setJudul(String judul) {
+        this.judul = judul;
+    }
 
-    public String getHari() { return hari; }
-    public void setHari(String hari) { this.hari = hari; }
+    public String getLokasi() {
+        return lokasi;
+    }
 
-    public String getJamMulai() { return jamMulai; }
-    public void setJamMulai(String jamMulai) { this.jamMulai = jamMulai; }
+    public void setLokasi(String lokasi) {
+        this.lokasi = lokasi;
+    }
 
-    public String getJamSelesai() { return jamSelesai; }
-    public void setJamSelesai(String jamSelesai) { this.jamSelesai = jamSelesai; }
+    public Category getKategori() {
+        return kategori;
+    }
 
-    public String getFrekuensi() { return frekuensi; }
-    public void setFrekuensi(String frekuensi) { this.frekuensi = frekuensi; }
+    public void setKategori(Category kategori) {
+        this.kategori = kategori;
+    }
 
-    public String getTglMulai() { return tglMulai; }
-    public void setTglMulai(String tglMulai) { this.tglMulai = tglMulai; }
+    public Day getHari() {
+        return hari;
+    }
 
-    public String getTglSelesai() { return tglSelesai; }
-    public void setTglSelesai(String tglSelesai) { this.tglSelesai = tglSelesai; }
+    public void setHari(Day hari) {
+        this.hari = hari;
+    }
 
-    public String getDeskripsi() { return deskripsi; }
-    public void setDeskripsi(String deskripsi) { this.deskripsi = deskripsi; }
+    public LocalTime getJamMulai() {
+        return jamMulai;
+    }
+
+    public void setJamMulai(LocalTime jamMulai) {
+        this.jamMulai = jamMulai;
+    }
+
+    public LocalTime getJamSelesai() {
+        return jamSelesai;
+    }
+
+    public void setJamSelesai(LocalTime jamSelesai) {
+        this.jamSelesai = jamSelesai;
+    }
+
+    public Frequency getFrekuensi() {
+        return frekuensi;
+    }
+
+    public void setFrekuensi(Frequency frekuensi) {
+        this.frekuensi = frekuensi;
+    }
+
+    public LocalDate getTglMulai() {
+        return tanggalMulai;
+    }
+
+    public void setTglMulai(LocalDate tglMulai) {
+        this.tanggalMulai = tglMulai;
+    }
+
+    public LocalDate getTglSelesai() {
+        return tanggalSelesai;
+    }
+
+    public void setTglSelesai(LocalDate tglSelesai) {
+        this.tanggalSelesai = tglSelesai;
+    }
+
+    public String getDeskripsi() {
+        return deskripsi;
+    }
+
+    public void setDeskripsi(String deskripsi) {
+        this.deskripsi = deskripsi;
+    }
 }
