@@ -1,15 +1,15 @@
 package com.github.galihcandraa.personal_planner.model;
 
 public enum SortOrder {
-    ASCENDING, DESCENDING;
+    ASC, DESC;
 
     public static SortOrder fromChoice(int choice) {
         switch (choice) {
             case 1:
-                return ASCENDING;
+                return ASC;
 
             case 2:
-                return DESCENDING;
+                return DESC;
 
             default:
                 return null;

@@ -19,7 +19,7 @@ public class Jadwal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(length = 15, nullable = false)
+    @Column(nullable = false)
     private long id;
     
     @NotNull

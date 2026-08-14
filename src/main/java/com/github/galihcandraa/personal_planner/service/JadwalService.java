@@ -2,15 +2,17 @@ package com.github.galihcandraa.personal_planner.service;
 
 import com.github.galihcandraa.personal_planner.repository.JadwalRepository;
 import java.time.*;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import jakarta.validation.ValidationException;
 
 import com.github.galihcandraa.personal_planner.model.*;
-import com.github.galihcandraa.personal_planner.util.*;
 
 @Service
 public class JadwalService {
@@ -25,106 +27,107 @@ public class JadwalService {
         return jadwalRepository.findAll();
     }
 
-    public void addJadwal(Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
-            LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
-            String deskripsi) {
-        if (deskripsi.isBlank())
-            deskripsi = "-";
+    public void addJadwal(Jadwal jadwal) {
+        validateTimeLogic(jadwal.getJamMulai(), jadwal.getJamSelesai());
+        validateTimeConflict(jadwal.getHari(), jadwal.getJamMulai(), jadwal.getJamSelesai(), 0);
+        validateDateLogic(jadwal.getTanggalMulai(), jadwal.getTanggalSelesai());
 
-        Jadwal dataBaru = new Jadwal(kategori, judul, lokasi, hari, jamMulai, jamSelesai, frekuensi,
-                tanggalMulai, tanggalSelesai, deskripsi);
-        jadwalRepository.save(dataBaru);
+        if (jadwal.getDeskripsi() == null || jadwal.getDeskripsi().isBlank())
+            jadwal.setDeskripsi("-");
+
+        jadwalRepository.save(jadwal);
     }
 
-    public void editJadwal(long id, Category kategori, String judul, String lokasi, Day hari, LocalTime jamMulai,
-            LocalTime jamSelesai, Frequency frekuensi, LocalDate tanggalMulai, LocalDate tanggalSelesai,
-            String deskripsi) {
-        Jadwal jadwal = findById(id);
+    public void editJadwal(Jadwal jadwal, long id) {
+        validateTimeLogic(jadwal.getJamMulai(), jadwal.getJamSelesai());
+        validateTimeConflict(jadwal.getHari(), jadwal.getJamMulai(), jadwal.getJamSelesai(), id);
+        validateDateLogic(jadwal.getTanggalMulai(), jadwal.getTanggalSelesai());
 
-        jadwal.setKategori(kategori);
-        jadwal.setJudul(judul);
-        jadwal.setLokasi(lokasi);
-        jadwal.setHari(hari);
-        jadwal.setJamMulai(jamMulai);
-        jadwal.setJamSelesai(jamSelesai);
-        jadwal.setFrekuensi(frekuensi);
-        jadwal.setTanggalMulai(tanggalMulai);
-        jadwal.setTanggalSelesai(tanggalSelesai);
-        jadwal.setDeskripsi(deskripsi);
+        if (jadwal.getDeskripsi() == null || jadwal.getDeskripsi().isBlank())
+            jadwal.setDeskripsi("-");
+
         jadwalRepository.save(jadwal);
     }
 
     public Jadwal findById(long id) {
         return jadwalRepository.findById(id)
-                .orElseThrow(() -> new ValidationException("Pencarian gagal, ID tidak ditemukan!"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Pencarian gagal, ID " + id + " tidak ditemukan!"));
     }
 
     public List<Jadwal> searchByCondition(SearchType type, String value) {
-        List<Jadwal> results = new ArrayList<>();
-
-        for (Jadwal jadwal : jadwalRepository.findAll()) {
-            switch (type) {
-                case ID:
-                    try {
-                        if (jadwal.getId() == Long.parseLong(value))
-                            results.add(jadwal);
-                    } catch (ValidationException e) {
-                        throw new ValidationException("[ERROR] ID bukan termasuk angka, ulangi!");
-                    }
-                    break;
-
-                case KATEGORI:
-                    if (jadwal.getKategori().toString().equalsIgnoreCase(value))
-                        results.add(jadwal);
-                    break;
-
-                case JUDUL:
-                    if (jadwal.getJudul().contains(value))
-                        results.add(jadwal);
-                    break;
-
-                case HARI:
-                    if (jadwal.getHari().toString().equalsIgnoreCase(value))
-                        results.add(jadwal);
-                    break;
-            }
+        if (value == null || value.isBlank()) {
+            return jadwalRepository.findAll();
         }
-        return results;
+
+        value = value.trim();
+
+        switch (type) {
+            case ID:
+                try {
+                    Long id = Long.parseLong(value);
+                    return jadwalRepository.findById(id).map(List::of).orElseGet(ArrayList::new);
+                } catch (NumberFormatException e) {
+                    throw new ValidationException("[ERROR] ID bukan termasuk angka, ulangi!");
+                }
+
+            case KATEGORI:
+                try {
+                    Category kategori = Category.valueOf(value.toUpperCase());
+                    return jadwalRepository.findByKategori(kategori);
+                } catch (IllegalArgumentException e) {
+                    return new ArrayList<>();
+                }
+
+            case JUDUL:
+                return jadwalRepository.findByJudulContainingIgnoreCase(value);
+
+            case HARI:
+                try {
+                    Day hari = Day.valueOf(value.toUpperCase());
+                    return jadwalRepository.findByHari(hari);
+                } catch (IllegalArgumentException e) {
+                    return new ArrayList<>();
+                }
+
+            default:
+                return new ArrayList<>();
+        }
     }
 
     public List<Jadwal> sortByCondition(SortType type, SortOrder order) {
-        List<Jadwal> results = new ArrayList<>(jadwalRepository.findAll());
+        Sort.Direction direction = (order == SortOrder.DESC) ? Sort.Direction.DESC : Sort.Direction.ASC;
 
-        Comparator<Jadwal> comparator = null;
+        if (type == null)
+            type = SortType.JUDUL;
+
+        Sort sort;
 
         switch (type) {
             case KATEGORI:
-                comparator = Comparator.comparing(Jadwal::getKategori);
+                sort = Sort.by(direction, "kategori");
                 break;
 
             case JUDUL:
-                comparator = Comparator.comparing(Jadwal::getJudul);
+                sort = Sort.by(direction, "judul");
                 break;
 
             case HARI:
-                comparator = Comparator.comparing(Jadwal::getHari);
+                sort = Sort.by(direction, "hari");
                 break;
 
             case JAM_MULAI:
-                comparator = Comparator.comparing(Jadwal::getJamMulai);
+                sort = Sort.by(direction, "jamMulai");
                 break;
 
             case TANGGAL_MULAI:
-                comparator = Comparator.comparing(Jadwal::getTanggalMulai)
-                        .thenComparing(Jadwal::getJamMulai);
+                sort = Sort.by(direction, "tanggalMulai", "jamMulai");
                 break;
-        }
-        if (order == SortOrder.DESCENDING) {
-            comparator = comparator.reversed();
-        }
-        results.sort(comparator);
 
-        return results;
+            default:
+                sort = Sort.by(direction, "id");
+        }
+        return jadwalRepository.findAll(sort);
     }
 
     public void deleteById(long id) {
@@ -165,46 +168,6 @@ public class JadwalService {
     public void validateDateLogic(LocalDate targetStart, LocalDate targetEnd) {
         if (targetStart.isAfter(targetEnd)) {
             throw new ValidationException("[ERROR] tanggal mulai wajib sebelum tanggal selesai, ulangi!");
-        }
-    }
-
-    public Category parseCategory(String field) {
-        try {
-            return Category.valueOf(field.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Tidak berhasil konversi tipe data");
-        }
-    }
-
-    public Day parseDay(String field) {
-        try {
-            return Day.valueOf(field.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Tidak berhasil konversi tipe data");
-        }
-    }
-
-    public Frequency parseFrequency(String field) {
-        try {
-            return Frequency.valueOf(field.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Tidak berhasil konversi tipe data");
-        }
-    }
-
-    public LocalTime parseTime(String field) {
-        try {
-            return LocalTime.parse(field, DateTimeFormatters.TIME_FORMATTER);
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Format jam harus HH:mm");
-        }
-    }
-
-    public LocalDate parseDate(String field) {
-        try {
-            return LocalDate.parse(field, DateTimeFormatters.DATE_FORMATTER);
-        } catch (DateTimeException e) {
-            throw new IllegalArgumentException("Format tanggal harus dd-MM-yyyy");
         }
     }
 }
