@@ -61,6 +61,25 @@ public class JadwalController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable long id) {
         service.deleteById(id);
-        return ResponseEntity.ok("Berhasil dihapus");
+        return ResponseEntity.ok("Berhasil menghapus jadwal dengan id " + id);
+    }
+
+    // melakukan proses searching sesuai tipe
+    @GetMapping("/search")
+    public ResponseEntity<List<Jadwal>> search(@RequestParam SearchType type, String value) {
+        return ResponseEntity.ok(service.searchByCondition(type, value));
+    }
+
+    // melakukan proses sorting sesuai tipe
+    @GetMapping("/sort")
+    public ResponseEntity<List<Jadwal>> sort(@RequestParam SortType type, SortOrder order) {
+        return ResponseEntity.ok(service.sortByCondition(type, order));
+    }
+
+    // mereset data jadwal yang tersimpan
+    @DeleteMapping("/reset")
+    public ResponseEntity<String> deleteAll() {
+        service.reset();
+        return ResponseEntity.ok("Berhasil menghapus semua jadwal");
     }
 }
