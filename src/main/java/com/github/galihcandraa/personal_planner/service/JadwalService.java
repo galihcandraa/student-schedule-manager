@@ -32,6 +32,10 @@ public class JadwalService {
         validateTimeConflict(jadwal.getHari(), jadwal.getJamMulai(), jadwal.getJamSelesai(), 0);
         validateDateLogic(jadwal.getTanggalMulai(), jadwal.getTanggalSelesai());
 
+        if (jadwal.getFrekuensi() == Frequency.SELALU) {
+            jadwal.setTanggalSelesai(null);
+        }
+        
         if (jadwal.getDeskripsi() == null || jadwal.getDeskripsi().isBlank())
             jadwal.setDeskripsi("-");
 
@@ -39,14 +43,32 @@ public class JadwalService {
     }
 
     public void editJadwal(Jadwal jadwal, long id) {
+        Jadwal oldJadwal = jadwalRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Jadwal dengan ID: " + id + " tidak ditemukan!"));
+        
         validateTimeLogic(jadwal.getJamMulai(), jadwal.getJamSelesai());
         validateTimeConflict(jadwal.getHari(), jadwal.getJamMulai(), jadwal.getJamSelesai(), id);
         validateDateLogic(jadwal.getTanggalMulai(), jadwal.getTanggalSelesai());
 
-        if (jadwal.getDeskripsi() == null || jadwal.getDeskripsi().isBlank())
-            jadwal.setDeskripsi("-");
+        oldJadwal.setKategori(jadwal.getKategori());
+        oldJadwal.setJudul(jadwal.getJudul());
+        oldJadwal.setLokasi(jadwal.getLokasi());
+        oldJadwal.setHari(jadwal.getHari());
+        oldJadwal.setJamMulai(jadwal.getJamMulai());
+        oldJadwal.setJamSelesai(jadwal.getJamSelesai());
+        oldJadwal.setFrekuensi(jadwal.getFrekuensi());
+        oldJadwal.setTanggalMulai(jadwal.getTanggalMulai());
+        oldJadwal.setTanggalSelesai(jadwal.getTanggalSelesai());
+        oldJadwal.setDeskripsi(jadwal.getDeskripsi());
+        
+        if (oldJadwal.getFrekuensi() == Frequency.SELALU) {
+            oldJadwal.setTanggalSelesai(null);
+        }
 
-        jadwalRepository.save(jadwal);
+        if (oldJadwal.getDeskripsi() == null || oldJadwal.getDeskripsi().isBlank())
+            oldJadwal.setDeskripsi("-");
+
+        jadwalRepository.save(oldJadwal);
     }
 
     public Jadwal findById(long id) {
@@ -166,6 +188,9 @@ public class JadwalService {
     }
 
     public void validateDateLogic(LocalDate targetStart, LocalDate targetEnd) {
+        if (targetEnd == null)
+            return;
+
         if (targetStart.isAfter(targetEnd)) {
             throw new ValidationException("[ERROR] tanggal mulai wajib sebelum tanggal selesai, ulangi!");
         }
