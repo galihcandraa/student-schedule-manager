@@ -37,10 +37,6 @@ bin/
 *.class
 out/
 
-# Persisted data 
-data_jadwal.csv
-data/
-
 # OS files
 .DS_Store
 Thumbs.db
